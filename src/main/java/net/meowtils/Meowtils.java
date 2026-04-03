@@ -22,15 +22,15 @@ import java.util.List;
 
 @Mod(modid = "meowtils", name = "Meowtils", version = "1.0", clientSideOnly = true)
 public class Meowtils {
-    //Message formatting variables
-    private static String color1 = EnumChatFormatting.GREEN.toString(); // Green - for prefix
-    private static String color2 = EnumChatFormatting.AQUA.toString(); // Aqua - for messages
+
+    private static String color1 = EnumChatFormatting.GREEN.toString();
+    private static String color2 = EnumChatFormatting.AQUA.toString();
     private static String reset = EnumChatFormatting.RESET.toString();
     private static String prefixText = "Meowtils";
     private static String prefix = "[" + prefixText + "] ";
 
-    // Color map for named colors
-    private static final java.util.Map<String, String> COLOR_MAP = new java.util.HashMap<String, String>();
+    private static final java.util.Map<String, String> COLOR_MAP = new java.util.HashMap<>();
+
     static {
         COLOR_MAP.put("black", EnumChatFormatting.BLACK.toString());
         COLOR_MAP.put("dark_blue", EnumChatFormatting.DARK_BLUE.toString());
@@ -52,102 +52,35 @@ public class Meowtils {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    // Checkpoint storage
     private Vec3 checkpointPos = null;
     private float checkpointYaw = 0, checkpointPitch = 0;
-    private boolean hotbarCPActive = true; // toggleable hotbar CP system
-    private boolean rightMouseWasDown = false; // to detect right-click press
+    private boolean hotbarCPActive = true;
+    private boolean rightMouseWasDown = false;
 
-    // Pending rotation after server teleport confirmation
     private boolean pendingTeleportRotation = false;
     private float pendingYaw, pendingPitch;
     private Vec3 expectedTeleportPos = null;
 
-    // Teleport message suppression
     private boolean suppressNextTeleportServerMessage = false;
 
-    // Keybinds
-    private final KeyBinding cpSetKey = new KeyBinding("Set CP", Keyboard.KEY_K, "TPPlus Hotbar CP");
-    private final KeyBinding cpReturnKey = new KeyBinding("Return to CP", Keyboard.KEY_L, "TPPlus Hotbar CP");
-    private final KeyBinding hotbarToggleKey = new KeyBinding("Toggle Hotbar CP System", Keyboard.KEY_H, "TPPlus Hotbar CP");
+    private final KeyBinding cpSetKey = new KeyBinding("Set CP", Keyboard.KEY_K, "Meowtils");
+    private final KeyBinding cpReturnKey = new KeyBinding("Return to CP", Keyboard.KEY_L, "Meowtils");
+    private final KeyBinding hotbarToggleKey = new KeyBinding("Toggle Hotbar CP System", Keyboard.KEY_H, "Meowtils");
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        // Register keybinds
         ClientRegistry.registerKeyBinding(cpSetKey);
         ClientRegistry.registerKeyBinding(cpReturnKey);
         ClientRegistry.registerKeyBinding(hotbarToggleKey);
 
-        // Register commands
         ClientCommandHandler.instance.registerCommand(new TPCommand());
         ClientCommandHandler.instance.registerCommand(new TPFCommand());
-        ClientCommandHandler.instance.registerCommand(new SetCPCommand());
-        ClientCommandHandler.instance.registerCommand(new GoCPCommand());
         ClientCommandHandler.instance.registerCommand(new TPUCommand());
 
-        // Register this class for event handling
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
     }
 
-    @SubscribeEvent
-    public void onClientChatReceived(net.minecraftforge.client.event.ClientChatReceivedEvent event) {
-        if (!suppressNextTeleportServerMessage) return;
-
-        String plain = event.message.getUnformattedText();
-        if (plain.contains("Teleporting you to") || plain.contains("Teleporting you")) {
-            event.setCanceled(true);
-            suppressNextTeleportServerMessage = false;
-        }
-    }
-
-    @SubscribeEvent
-    public void onKeyInput(KeyInputEvent event) {
-        if (mc.thePlayer == null) return;
-
-        if (cpSetKey.isPressed()) setCP();
-        if (cpReturnKey.isPressed()) returnToCP();
-        if (hotbarToggleKey.isPressed()) {
-            hotbarCPActive = !hotbarCPActive;
-            mc.thePlayer.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Hotbar CP System is now " + (hotbarCPActive ? "ON" : "OFF") + "." + reset));
-        }
-    }
-
-    @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-
-        // Handle pending rotation after server teleport confirmation
-        if (pendingTeleportRotation && expectedTeleportPos != null) {
-            double dx = Math.abs(mc.thePlayer.posX - expectedTeleportPos.xCoord);
-            double dy = Math.abs(mc.thePlayer.posY - expectedTeleportPos.yCoord);
-            double dz = Math.abs(mc.thePlayer.posZ - expectedTeleportPos.zCoord);
-
-            if (dx <= 0.1 && dy <= 0.1 && dz <= 0.1) {
-                mc.thePlayer.rotationYaw = pendingYaw;
-                mc.thePlayer.rotationPitch = pendingPitch;
-                mc.thePlayer.prevRotationYaw = pendingYaw;
-                mc.thePlayer.prevRotationPitch = pendingPitch;
-                pendingTeleportRotation = false;
-                expectedTeleportPos = null;
-            }
-        }
-
-        if (!hotbarCPActive) return;
-
-        int slot = mc.thePlayer.inventory.currentItem; // 0-8
-        boolean rightMouseDown = Mouse.isButtonDown(1);
-
-        if (rightMouseDown && !rightMouseWasDown) {
-            if (slot == 0) { // slot 1: return to CP
-                returnToCP();
-            } else if (slot == 2) { // slot 3: set CP
-                setCP();
-            }
-        }
-
-        rightMouseWasDown = rightMouseDown;
-    }
+    // ================= CHECKPOINT LOGIC =================
 
     private void setCP() {
         checkpointPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
@@ -162,28 +95,28 @@ public class Meowtils {
             return;
         }
 
-        // Send /tp command to server for position
         mc.thePlayer.sendChatMessage("/tp " + checkpointPos.xCoord + " " + checkpointPos.yCoord + " " + checkpointPos.zCoord);
         suppressNextTeleportServerMessage = true;
 
-        // Schedule rotation when confirmed teleport happens (reactive)
         pendingTeleportRotation = true;
         pendingYaw = checkpointYaw;
         pendingPitch = checkpointPitch;
         expectedTeleportPos = checkpointPos;
     }
 
-    // -------------------- COMMANDS --------------------
+    // ================= COMMANDS =================
 
     private class TPCommand implements ICommand {
         @Override
-        public String getCommandName() { return "tpp"; }
+        public String getCommandName() { return "tp"; }
 
         @Override
-        public String getCommandUsage(ICommandSender sender) { return "/tpp <x> <y> <z> [yaw] [pitch] (use ~ for relative)"; }
+        public String getCommandUsage(ICommandSender sender) {
+            return "/tp <x> <y> <z> [yaw] [pitch] (use ~ for relative)";
+        }
 
         @Override
-        public List getCommandAliases() { return new ArrayList<String>(); }
+        public List getCommandAliases() { return new ArrayList<>(); }
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
@@ -193,26 +126,21 @@ public class Meowtils {
             }
 
             try {
-                // Parse coordinates
-                double x = parseCoordinate(args[0], mc.thePlayer.posX, false);
-                double y = parseCoordinate(args[1], mc.thePlayer.posY, false);
-                double z = parseCoordinate(args[2], mc.thePlayer.posZ, false);
+                double x = parseCoordinate(args[0], mc.thePlayer.posX);
+                double y = parseCoordinate(args[1], mc.thePlayer.posY);
+                double z = parseCoordinate(args[2], mc.thePlayer.posZ);
 
                 float yaw = mc.thePlayer.rotationYaw;
                 float pitch = mc.thePlayer.rotationPitch;
 
-                if (args.length >= 4) {
-                    yaw = (float) parseCoordinate(args[3], mc.thePlayer.rotationYaw, true);
-                }
-                if (args.length == 5) {
-                    pitch = (float) parseCoordinate(args[4], mc.thePlayer.rotationPitch, true);
-                }
+                if (args.length >= 4)
+                    yaw = (float) parseCoordinate(args[3], mc.thePlayer.rotationYaw);
+                if (args.length == 5)
+                    pitch = (float) parseCoordinate(args[4], mc.thePlayer.rotationPitch);
 
-                // Send /tp command to server
                 mc.thePlayer.sendChatMessage("/tp " + x + " " + y + " " + z);
                 suppressNextTeleportServerMessage = true;
 
-                // Schedule rotation when confirmed teleport happens (reactive)
                 pendingTeleportRotation = true;
                 pendingYaw = yaw;
                 pendingPitch = pitch;
@@ -223,24 +151,19 @@ public class Meowtils {
             }
         }
 
-        private double parseCoordinate(String arg, double current, boolean isRotation) throws NumberFormatException {
+        private double parseCoordinate(String arg, double current) {
             if (arg.startsWith("~")) {
                 String value = arg.substring(1);
                 double offset = value.isEmpty() ? 0 : Double.parseDouble(value);
                 return current + offset;
-            } else {
-                return Double.parseDouble(arg);
             }
+            return Double.parseDouble(arg);
         }
 
-        @Override
-        public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
-        @Override
-        public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<String>(); }
-        @Override
-        public boolean isUsernameIndex(String[] args, int index) { return false; }
-        @Override
-        public int compareTo(ICommand o) { return 0; }
+        @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
+        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<>(); }
+        @Override public boolean isUsernameIndex(String[] args, int index) { return false; }
+        @Override public int compareTo(ICommand o) { return 0; }
     }
 
     private class TPFCommand implements ICommand {
@@ -248,10 +171,12 @@ public class Meowtils {
         public String getCommandName() { return "tpf"; }
 
         @Override
-        public String getCommandUsage(ICommandSender sender) { return "/tpf <yaw> [pitch] (use ~ for relative)"; }
+        public String getCommandUsage(ICommandSender sender) {
+            return "/tpf <yaw> [pitch] (use ~ for relative)";
+        }
 
         @Override
-        public List getCommandAliases() { return new ArrayList<String>(); }
+        public List getCommandAliases() { return new ArrayList<>(); }
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
@@ -261,14 +186,12 @@ public class Meowtils {
             }
 
             try {
-                float yaw = (float) parseCoordinate(args[0], mc.thePlayer.rotationYaw, true);
+                float yaw = (float) parseCoordinate(args[0], mc.thePlayer.rotationYaw);
                 float pitch = mc.thePlayer.rotationPitch;
 
-                if (args.length == 2) {
-                    pitch = (float) parseCoordinate(args[1], mc.thePlayer.rotationPitch, true);
-                }
+                if (args.length == 2)
+                    pitch = (float) parseCoordinate(args[1], mc.thePlayer.rotationPitch);
 
-                // Set rotation directly
                 mc.thePlayer.rotationYaw = yaw;
                 mc.thePlayer.rotationPitch = pitch;
                 mc.thePlayer.prevRotationYaw = yaw;
@@ -279,73 +202,36 @@ public class Meowtils {
             }
         }
 
-        private double parseCoordinate(String arg, double current, boolean isRotation) throws NumberFormatException {
+        private double parseCoordinate(String arg, double current) {
             if (arg.startsWith("~")) {
                 String value = arg.substring(1);
                 double offset = value.isEmpty() ? 0 : Double.parseDouble(value);
                 return current + offset;
-            } else {
-                return Double.parseDouble(arg);
             }
+            return Double.parseDouble(arg);
         }
 
-        @Override
-        public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
-        @Override
-        public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<String>(); }
-        @Override
-        public boolean isUsernameIndex(String[] args, int index) { return false; }
-        @Override
-        public int compareTo(ICommand o) { return 0; }
-    }
-
-    private class SetCPCommand implements ICommand {
-        @Override
-        public String getCommandName() { return "setcp"; }
-        @Override
-        public String getCommandUsage(ICommandSender sender) { return "/setcp"; }
-        @Override
-        public List getCommandAliases() { return new ArrayList<String>(); }
-        @Override
-        public void processCommand(ICommandSender sender, String[] args) { setCP(); }
-        @Override
-        public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
-        @Override
-        public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<String>(); }
-        @Override
-        public boolean isUsernameIndex(String[] args, int index) { return false; }
-        @Override
-        public int compareTo(ICommand o) { return 0; }
-    }
-
-    private class GoCPCommand implements ICommand {
-        @Override
-        public String getCommandName() { return "gocp"; }
-        @Override
-        public String getCommandUsage(ICommandSender sender) { return "/gocp"; }
-        @Override
-        public List getCommandAliases() { return new ArrayList<String>(); }
-        @Override
-        public void processCommand(ICommandSender sender, String[] args) { returnToCP(); }
-        @Override
-        public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
-        @Override
-        public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<String>(); }
-        @Override
-        public boolean isUsernameIndex(String[] args, int index) { return false; }
-        @Override
-        public int compareTo(ICommand o) { return 0; }
+        @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
+        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<>(); }
+        @Override public boolean isUsernameIndex(String[] args, int index) { return false; }
+        @Override public int compareTo(ICommand o) { return 0; }
     }
 
     private class TPUCommand implements ICommand {
         @Override
-        public String getCommandName() { return "tpu"; }
+        public String getCommandName() { return "meowtils"; }
 
         @Override
-        public String getCommandUsage(ICommandSender sender) { return "/tpu <color1|color2> <color_name> | /tpu prefix <text> | /tpu list"; }
+        public String getCommandUsage(ICommandSender sender) {
+            return "/meowtils <color1|color2> <color_name> | /meowtils prefix <text> | /meowtils list";
+        }
 
         @Override
-        public List getCommandAliases() { return new ArrayList<String>(); }
+        public List getCommandAliases() {
+            List<String> aliases = new ArrayList<>();
+            aliases.add("mt");
+            return aliases;
+        }
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
@@ -356,25 +242,26 @@ public class Meowtils {
 
             if (args[0].equalsIgnoreCase("list")) {
                 StringBuilder sb = new StringBuilder(color1 + prefix + color2 + "Available colors: " + reset);
-                for (String colorName : COLOR_MAP.keySet()) {
+                for (String colorName : COLOR_MAP.keySet())
                     sb.append(colorName).append(", ");
-                }
-                sb.setLength(sb.length() - 2); // remove last comma
+                sb.setLength(sb.length() - 2);
                 sender.addChatMessage(new ChatComponentText(sb.toString()));
                 return;
             }
 
             if (args[0].equalsIgnoreCase("prefix")) {
                 if (args.length < 2) {
-                    sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /tpu prefix <text>" + reset));
+                    sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /meowtils prefix <text>" + reset));
                     return;
                 }
+
                 StringBuilder newPrefixText = new StringBuilder();
-                for (int i = 1; i < args.length; i++) {
+                for (int i = 1; i < args.length; i++)
                     newPrefixText.append(args[i]).append(" ");
-                }
+
                 prefixText = newPrefixText.toString().trim();
                 prefix = "[" + prefixText + "] ";
+
                 sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Prefix set to: [" + prefixText + "]" + reset));
                 return;
             }
@@ -388,28 +275,25 @@ public class Meowtils {
             String colorName = args[1].toLowerCase();
 
             if (!COLOR_MAP.containsKey(colorName)) {
-                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Unknown color: " + colorName + ". Use /tpu list to see available colors." + reset));
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Unknown color: " + colorName + ". Use /meowtils list to see available colors." + reset));
                 return;
             }
 
             if (colorVar.equals("color1")) {
                 color1 = COLOR_MAP.get(colorName);
-                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Color1 set to " + colorName + "." + reset));
             } else if (colorVar.equals("color2")) {
                 color2 = COLOR_MAP.get(colorName);
-                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Color2 set to " + colorName + "." + reset));
             } else {
                 sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid color variable. Use color1 or color2." + reset));
+                return;
             }
+
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Updated successfully." + reset));
         }
 
-        @Override
-        public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
-        @Override
-        public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<String>(); }
-        @Override
-        public boolean isUsernameIndex(String[] args, int index) { return false; }
-        @Override
-        public int compareTo(ICommand o) { return 0; }
+        @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
+        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<>(); }
+        @Override public boolean isUsernameIndex(String[] args, int index) { return false; }
+        @Override public int compareTo(ICommand o) { return 0; }
     }
 }
