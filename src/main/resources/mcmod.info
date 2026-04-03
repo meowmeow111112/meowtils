@@ -1,7 +1,7 @@
 [
 {
-  "modid": "tputils",
-  "name": "TP Plus",
+  "modid": "meowtils",
+  "name": "Meowtils",
   "description": "Teleportation utilities mod.",
   "version": "1.0",
   "mcversion": "1.8.9",

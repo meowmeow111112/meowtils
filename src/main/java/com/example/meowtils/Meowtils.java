@@ -1,4 +1,4 @@
-package com.example.tputils;
+package com.example.meowtils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -20,13 +20,13 @@ import org.lwjgl.input.Mouse;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod(modid = "tputils", name = "TP Utils", version = "1.0", clientSideOnly = true)
-public class TPUtils {
+@Mod(modid = "meowtils", name = "Meowtils", version = "1.0", clientSideOnly = true)
+public class Meowtils {
     //Message formatting variables
     private static String color1 = EnumChatFormatting.GREEN.toString(); // Green - for prefix
     private static String color2 = EnumChatFormatting.AQUA.toString(); // Aqua - for messages
     private static String reset = EnumChatFormatting.RESET.toString();
-    private static String prefixText = "TP Utils";
+    private static String prefixText = "Meowtils";
     private static String prefix = "[" + prefixText + "] ";
 
     // Color map for named colors
