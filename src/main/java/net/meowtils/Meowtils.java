@@ -83,42 +83,63 @@ public class Meowtils {
     // ================= EVENT HANDLERS =================
 
     @SubscribeEvent
+    public void onClientChatReceived(net.minecraftforge.client.event.ClientChatReceivedEvent event) {
+        if (!suppressNextTeleportServerMessage) return;
+
+        String plain = event.message.getUnformattedText();
+        if (plain.contains("Teleporting you to") || plain.contains("Teleporting you")) {
+            event.setCanceled(true);
+            suppressNextTeleportServerMessage = false;
+        }
+    }
+
+    @SubscribeEvent
     public void onKeyInput(KeyInputEvent event) {
+        if (mc.thePlayer == null) return;
+
+        if (cpSetKey.isPressed()) setCP();
+        if (cpReturnKey.isPressed()) returnToCP();
         if (hotbarToggleKey.isPressed()) {
             hotbarCPActive = !hotbarCPActive;
-            mc.thePlayer.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Hotbar CP System " + (hotbarCPActive ? "enabled" : "disabled") + reset));
-        }
-        if (cpSetKey.isPressed()) {
-            setCP();
-        }
-        if (cpReturnKey.isPressed()) {
-            returnToCP();
+            mc.thePlayer.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Hotbar CP System is now " + (hotbarCPActive ? "ON" : "OFF") + "." + reset));
         }
     }
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            return;
-        }
+        if (event.phase != TickEvent.Phase.START) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
 
-        if (!hotbarCPActive || mc.thePlayer == null) {
-            rightMouseWasDown = false;
-            return;
-        }
+        // Handle pending rotation after server teleport confirmation
+        if (pendingTeleportRotation && expectedTeleportPos != null) {
+            double dx = Math.abs(mc.thePlayer.posX - expectedTeleportPos.xCoord);
+            double dy = Math.abs(mc.thePlayer.posY - expectedTeleportPos.yCoord);
+            double dz = Math.abs(mc.thePlayer.posZ - expectedTeleportPos.zCoord);
 
-        boolean rightMouseIsDown = Mouse.isButtonDown(1);
-        int currentHotbarSlot = mc.thePlayer.inventory.currentItem;
-
-        if (rightMouseIsDown && !rightMouseWasDown) {
-            if (currentHotbarSlot == 2) {
-                setCP();
-            } else if (currentHotbarSlot == 0) {
-                returnToCP();
+            if (dx <= 0.1 && dy <= 0.1 && dz <= 0.1) {
+                mc.thePlayer.rotationYaw = pendingYaw;
+                mc.thePlayer.rotationPitch = pendingPitch;
+                mc.thePlayer.prevRotationYaw = pendingYaw;
+                mc.thePlayer.prevRotationPitch = pendingPitch;
+                pendingTeleportRotation = false;
+                expectedTeleportPos = null;
             }
         }
 
-        rightMouseWasDown = rightMouseIsDown;
+        if (!hotbarCPActive) return;
+
+        int slot = mc.thePlayer.inventory.currentItem; // 0-8
+        boolean rightMouseDown = Mouse.isButtonDown(1);
+
+        if (rightMouseDown && !rightMouseWasDown) {
+            if (slot == 0) { // slot 1: return to CP
+                returnToCP();
+            } else if (slot == 2) { // slot 3: set CP
+                setCP();
+            }
+        }
+
+        rightMouseWasDown = rightMouseDown;
     }
 
     // ================= CHECKPOINT LOGIC =================
@@ -330,14 +351,13 @@ public class Meowtils {
 
             if (colorVar.equals("color1")) {
                 color1 = COLOR_MAP.get(colorName);
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Color1 set to " + colorName + "." + reset));
             } else if (colorVar.equals("color2")) {
                 color2 = COLOR_MAP.get(colorName);
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Color2 set to " + colorName + "." + reset));
             } else {
                 sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid color variable. Use color1 or color2." + reset));
-                return;
             }
-
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Updated successfully." + reset));
         }
 
         @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
