@@ -1,4 +1,44 @@
-<<<<<<< HEAD
+# Compiled class files
+*.class
+
+# Logs
+*.log
+hs_err_pid*
+replay_pid*
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Gradle
+build/
+.gradle/
+
+# Eclipse
+bin/
+.settings/
+.metadata/
+.classpath
+.project
+*.launch
+
+# IntelliJ IDEA
+out/
+.idea/
+*.ipr
+*.iws
+*.iml
+
+# VS Code
+.vscode/
+
+# Forge run folder
+run/
 # eclipse
 bin
 *.launch
