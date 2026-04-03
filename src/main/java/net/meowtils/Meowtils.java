@@ -80,6 +80,22 @@ public class Meowtils {
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
     }
 
+    // ================= EVENT HANDLERS =================
+
+    @SubscribeEvent
+    public void onKeyInput(KeyInputEvent event) {
+        if (hotbarToggleKey.isPressed()) {
+            hotbarCPActive = !hotbarCPActive;
+            mc.thePlayer.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Hotbar CP System " + (hotbarCPActive ? "enabled" : "disabled") + reset));
+        }
+        if (cpSetKey.isPressed()) {
+            setCP();
+        }
+        if (cpReturnKey.isPressed()) {
+            returnToCP();
+        }
+    }
+
     // ================= CHECKPOINT LOGIC =================
 
     private void setCP() {
