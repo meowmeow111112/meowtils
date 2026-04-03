@@ -29,7 +29,7 @@ public class Meowtils {
     private static String prefixText = "Meowtils";
     private static String prefix = "[" + prefixText + "] ";
 
-    private static final java.util.Map<String, String> COLOR_MAP = new java.util.HashMap<>();
+    private static final java.util.Map<String, String> COLOR_MAP = new java.util.HashMap<String, String>();
 
     static {
         COLOR_MAP.put("black", EnumChatFormatting.BLACK.toString());
@@ -116,7 +116,7 @@ public class Meowtils {
         }
 
         @Override
-        public List getCommandAliases() { return new ArrayList<>(); }
+        public List getCommandAliases() { return new ArrayList(); }
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
@@ -161,7 +161,7 @@ public class Meowtils {
         }
 
         @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
-        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<>(); }
+        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList(); }
         @Override public boolean isUsernameIndex(String[] args, int index) { return false; }
         @Override public int compareTo(ICommand o) { return 0; }
     }
@@ -176,7 +176,7 @@ public class Meowtils {
         }
 
         @Override
-        public List getCommandAliases() { return new ArrayList<>(); }
+        public List getCommandAliases() { return new ArrayList(); }
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
@@ -212,7 +212,7 @@ public class Meowtils {
         }
 
         @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
-        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<>(); }
+        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList(); }
         @Override public boolean isUsernameIndex(String[] args, int index) { return false; }
         @Override public int compareTo(ICommand o) { return 0; }
     }
@@ -228,7 +228,7 @@ public class Meowtils {
 
         @Override
         public List getCommandAliases() {
-            List<String> aliases = new ArrayList<>();
+            List<String> aliases = new ArrayList<String>();
             aliases.add("mt");
             return aliases;
         }
@@ -292,7 +292,7 @@ public class Meowtils {
         }
 
         @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
-        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<>(); }
+        @Override public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList(); }
         @Override public boolean isUsernameIndex(String[] args, int index) { return false; }
         @Override public int compareTo(ICommand o) { return 0; }
     }
