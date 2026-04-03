@@ -111,9 +111,9 @@ public class Meowtils {
         int currentHotbarSlot = mc.thePlayer.inventory.currentItem;
 
         if (rightMouseIsDown && !rightMouseWasDown) {
-            if (currentHotbarSlot == 3) {
+            if (currentHotbarSlot == 2) {
                 setCP();
-            } else if (currentHotbarSlot == 1) {
+            } else if (currentHotbarSlot == 0) {
                 returnToCP();
             }
         }
