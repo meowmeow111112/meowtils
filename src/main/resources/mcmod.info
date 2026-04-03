@@ -1,0 +1,16 @@
+[
+{
+  "modid": "tputils",
+  "name": "TP Plus",
+  "description": "Teleportation utilities mod.",
+  "version": "1.0",
+  "mcversion": "1.8.9",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["ProMa"],
+  "credits": "The Forge and FML guys",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
