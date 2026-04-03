@@ -1,4 +1,4 @@
-package com.example.meowtils;
+package net.meowtils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -81,6 +81,8 @@ public class Meowtils {
         // Register commands
         ClientCommandHandler.instance.registerCommand(new TPCommand());
         ClientCommandHandler.instance.registerCommand(new TPFCommand());
+        ClientCommandHandler.instance.registerCommand(new SetCPCommand());
+        ClientCommandHandler.instance.registerCommand(new GoCPCommand());
         ClientCommandHandler.instance.registerCommand(new TPUCommand());
 
         // Register this class for event handling
@@ -175,10 +177,10 @@ public class Meowtils {
 
     private class TPCommand implements ICommand {
         @Override
-        public String getCommandName() { return "tp"; }
+        public String getCommandName() { return "tpp"; }
 
         @Override
-        public String getCommandUsage(ICommandSender sender) { return "/tp <x> <y> <z> [yaw] [pitch] (use ~ for relative)"; }
+        public String getCommandUsage(ICommandSender sender) { return "/tpp <x> <y> <z> [yaw] [pitch] (use ~ for relative)"; }
 
         @Override
         public List getCommandAliases() { return new ArrayList<String>(); }
@@ -297,15 +299,53 @@ public class Meowtils {
         public int compareTo(ICommand o) { return 0; }
     }
 
+    private class SetCPCommand implements ICommand {
+        @Override
+        public String getCommandName() { return "setcp"; }
+        @Override
+        public String getCommandUsage(ICommandSender sender) { return "/setcp"; }
+        @Override
+        public List getCommandAliases() { return new ArrayList<String>(); }
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) { setCP(); }
+        @Override
+        public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
+        @Override
+        public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<String>(); }
+        @Override
+        public boolean isUsernameIndex(String[] args, int index) { return false; }
+        @Override
+        public int compareTo(ICommand o) { return 0; }
+    }
+
+    private class GoCPCommand implements ICommand {
+        @Override
+        public String getCommandName() { return "gocp"; }
+        @Override
+        public String getCommandUsage(ICommandSender sender) { return "/gocp"; }
+        @Override
+        public List getCommandAliases() { return new ArrayList<String>(); }
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) { returnToCP(); }
+        @Override
+        public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
+        @Override
+        public List addTabCompletionOptions(ICommandSender sender, String[] args, net.minecraft.util.BlockPos pos) { return new ArrayList<String>(); }
+        @Override
+        public boolean isUsernameIndex(String[] args, int index) { return false; }
+        @Override
+        public int compareTo(ICommand o) { return 0; }
+    }
+
     private class TPUCommand implements ICommand {
         @Override
-        public String getCommandName() { return "meowtils"; }
+        public String getCommandName() { return "tpu"; }
 
         @Override
-        public String getCommandUsage(ICommandSender sender) { return "/meowtils <color1|color2> <color_name> | /meowtils prefix <text> | /meowtils list"; }
+        public String getCommandUsage(ICommandSender sender) { return "/tpu <color1|color2> <color_name> | /tpu prefix <text> | /tpu list"; }
 
         @Override
-        public List getCommandAliases() { List<String> aliases = new ArrayList<>(); aliases.add("mt"); return aliases; }
+        public List getCommandAliases() { return new ArrayList<String>(); }
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
@@ -326,7 +366,7 @@ public class Meowtils {
 
             if (args[0].equalsIgnoreCase("prefix")) {
                 if (args.length < 2) {
-                    sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /meowtils prefix <text>" + reset));
+                    sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /tpu prefix <text>" + reset));
                     return;
                 }
                 StringBuilder newPrefixText = new StringBuilder();
@@ -348,7 +388,7 @@ public class Meowtils {
             String colorName = args[1].toLowerCase();
 
             if (!COLOR_MAP.containsKey(colorName)) {
-                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Unknown color: " + colorName + ". Use /meowtils list to see available colors." + reset));
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Unknown color: " + colorName + ". Use /tpu list to see available colors." + reset));
                 return;
             }
 
