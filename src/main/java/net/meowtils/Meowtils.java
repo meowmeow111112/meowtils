@@ -96,6 +96,31 @@ public class Meowtils {
         }
     }
 
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            return;
+        }
+
+        if (!hotbarCPActive || mc.thePlayer == null) {
+            rightMouseWasDown = false;
+            return;
+        }
+
+        boolean rightMouseIsDown = Mouse.isButtonDown(1);
+        int currentHotbarSlot = mc.thePlayer.inventory.currentItem;
+
+        if (rightMouseIsDown && !rightMouseWasDown) {
+            if (currentHotbarSlot == 3) {
+                setCP();
+            } else if (currentHotbarSlot == 1) {
+                returnToCP();
+            }
+        }
+
+        rightMouseWasDown = rightMouseIsDown;
+    }
+
     // ================= CHECKPOINT LOGIC =================
 
     private void setCP() {
@@ -137,7 +162,7 @@ public class Meowtils {
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
             if (args.length < 3 || args.length > 5) {
-                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: " + getCommandUsage(sender) + reset));
+                forwardToServer(args);
                 return;
             }
 
@@ -163,8 +188,16 @@ public class Meowtils {
                 expectedTeleportPos = new Vec3(x, y, z);
 
             } catch (NumberFormatException e) {
-                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid number format" + reset));
+                forwardToServer(args);
             }
+        }
+
+        private void forwardToServer(String[] args) {
+            StringBuilder cmd = new StringBuilder("/tp");
+            for (String arg : args) {
+                cmd.append(" ").append(arg);
+            }
+            mc.thePlayer.sendChatMessage(cmd.toString());
         }
 
         private double parseCoordinate(String arg, double current) {
