@@ -20,7 +20,7 @@ public class MeowtilsCommand implements ICommand {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/meowtils <color1|color2> <color_name> | /meowtils prefix <text> | /meowtils list";
+        return "/meowtils <color1|color2> <color_name> | /meowtils prefix <text> | /meowtils crs <slot> | /meowtils css <slot> | /meowtils list";
     }
 
     @Override
@@ -65,6 +65,46 @@ public class MeowtilsCommand implements ICommand {
             prefix = configManager.getPrefix();
 
             sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Prefix set to: [" + configManager.getPrefixText() + "]" + reset));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("crs") || args[0].equalsIgnoreCase("checkpointreturnerslot")) {
+            if (args.length < 2) {
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /meowtils crs <slot> (1-9)" + reset));
+                return;
+            }
+
+            try {
+                int slot = Integer.parseInt(args[1]) - 1; // Convert 1-9 to 0-8
+                if (slot < 0 || slot > 8) {
+                    sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Slot must be between 1 and 9." + reset));
+                    return;
+                }
+                configManager.setCpReturnSlot(slot);
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Checkpoint return slot set to " + (slot + 1) + "." + reset));
+            } catch (NumberFormatException e) {
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid slot number." + reset));
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("css") || args[0].equalsIgnoreCase("checkpointsetslot")) {
+            if (args.length < 2) {
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /meowtils css <slot> (1-9)" + reset));
+                return;
+            }
+
+            try {
+                int slot = Integer.parseInt(args[1]) - 1; // Convert 1-9 to 0-8
+                if (slot < 0 || slot > 8) {
+                    sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Slot must be between 1 and 9." + reset));
+                    return;
+                }
+                configManager.setCpSetSlot(slot);
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Checkpoint set slot set to " + (slot + 1) + "." + reset));
+            } catch (NumberFormatException e) {
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid slot number." + reset));
+            }
             return;
         }
 
