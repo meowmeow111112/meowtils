@@ -60,6 +60,13 @@ public class LookTeleportManager {
             // Block has a collision box (e.g., solid block, fence, slab)
             // Calculate standable position accounting for adjacent and overhead blocks
             double[] standablePos = findSafeStandablePosition(pos, boundingBox);
+            if (standablePos == null) {
+                if (color1 != null) {
+                    mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
+                        color1 + prefix + color2 + "No safe position found near the target block!" + reset));
+                }
+                return;
+            }
             x = standablePos[0];
             y = boundingBox.maxY;
             z = standablePos[1];
@@ -95,12 +102,24 @@ public class LookTeleportManager {
         double playerHalfWidth = 0.3;
         double playerHeight = 1.8;
 
-        // Search candidate positions inside the block's top surface area
+        // Expand sampling area to account for player hitbox overhang
+        double sampleMinX = minX - playerHalfWidth;
+        double sampleMaxX = maxX + playerHalfWidth;
+        double sampleMinZ = minZ - playerHalfWidth;
+        double sampleMaxZ = maxZ + playerHalfWidth;
+
+        double centerX = (minX + maxX) / 2.0;
+        double centerZ = (minZ + maxZ) / 2.0;
+
+        // Collect all safe positions
+        java.util.List<double[]> safePositions = new java.util.ArrayList<double[]>();
+
+        // Search candidate positions in the expanded area
         int samples = 5;
         for (int xi = 0; xi < samples; xi++) {
             for (int zi = 0; zi < samples; zi++) {
-                double x = minX + ((double) xi / (samples - 1)) * (maxX - minX);
-                double z = minZ + ((double) zi / (samples - 1)) * (maxZ - minZ);
+                double x = sampleMinX + ((double) xi / (samples - 1)) * (sampleMaxX - sampleMinX);
+                double z = sampleMinZ + ((double) zi / (samples - 1)) * (sampleMaxZ - sampleMinZ);
                 net.minecraft.util.AxisAlignedBB playerBox = new net.minecraft.util.AxisAlignedBB(
                     x - playerHalfWidth,
                     topY,
@@ -111,13 +130,42 @@ public class LookTeleportManager {
                 );
 
                 if (isPlayerBoxClear(pos, playerBox)) {
-                    return new double[]{x, z};
+                    safePositions.add(new double[]{x, z});
                 }
             }
         }
 
-        // Fallback to center if none of the sampled positions are clear
-        return new double[]{(minX + maxX) / 2.0, (minZ + maxZ) / 2.0};
+        // Check center if not already included
+        net.minecraft.util.AxisAlignedBB centerPlayerBox = new net.minecraft.util.AxisAlignedBB(
+            centerX - playerHalfWidth,
+            topY,
+            centerZ - playerHalfWidth,
+            centerX + playerHalfWidth,
+            topY + playerHeight,
+            centerZ + playerHalfWidth
+        );
+        if (isPlayerBoxClear(pos, centerPlayerBox)) {
+            safePositions.add(new double[]{centerX, centerZ});
+        }
+
+        // Find the position closest to the center
+        if (safePositions.isEmpty()) {
+            return null;
+        }
+
+        double[] bestPos = null;
+        double minDist = Double.MAX_VALUE;
+        for (double[] posArr : safePositions) {
+            double dx = posArr[0] - centerX;
+            double dz = posArr[1] - centerZ;
+            double dist = dx * dx + dz * dz; // squared distance
+            if (dist < minDist) {
+                minDist = dist;
+                bestPos = posArr;
+            }
+        }
+
+        return bestPos;
     }
 
     private boolean isPlayerBoxClear(net.minecraft.util.BlockPos pos, net.minecraft.util.AxisAlignedBB playerBox) {
