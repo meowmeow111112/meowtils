@@ -61,7 +61,7 @@ public class LookTeleportManager {
             // Calculate standable position accounting for adjacent blocks
             double[] standablePos = calculateStandablePosition(pos, boundingBox);
             x = standablePos[0];
-            y = boundingBox.maxY + pos.getY();
+            y = boundingBox.maxY;
             z = standablePos[1];
         } else {
             // Fallback: center of block
@@ -87,7 +87,7 @@ public class LookTeleportManager {
     }
 
     private double[] calculateStandablePosition(net.minecraft.util.BlockPos pos, net.minecraft.util.AxisAlignedBB targetBox) {
-        // Start with the target block's bounding box as the standable area
+        // Start with the target block's bounding box in world coordinates
         double minX = targetBox.minX;
         double maxX = targetBox.maxX;
         double minZ = targetBox.minZ;
@@ -106,11 +106,11 @@ public class LookTeleportManager {
             net.minecraft.util.AxisAlignedBB adjBox = adjBlock.getCollisionBoundingBox(mc.theWorld, adjPos, mc.theWorld.getBlockState(adjPos));
 
             if (adjBox != null) {
-                // Offset the adjacent box to world coordinates relative to target block
-                double adjMinX = adjBox.minX + (adjPos.getX() - pos.getX());
-                double adjMaxX = adjBox.maxX + (adjPos.getX() - pos.getX());
-                double adjMinZ = adjBox.minZ + (adjPos.getZ() - pos.getZ());
-                double adjMaxZ = adjBox.maxZ + (adjPos.getZ() - pos.getZ());
+                // Adjacent box is already in world coordinates
+                double adjMinX = adjBox.minX;
+                double adjMaxX = adjBox.maxX;
+                double adjMinZ = adjBox.minZ;
+                double adjMaxZ = adjBox.maxZ;
 
                 // Check if adjacent block overlaps with target block's area
                 if (adjMinX < maxX && adjMaxX > minX && adjMinZ < maxZ && adjMaxZ > minZ) {
@@ -135,8 +135,8 @@ public class LookTeleportManager {
         }
 
         // Calculate center of the remaining standable area
-        double centerX = (minX + maxX) / 2.0 + pos.getX();
-        double centerZ = (minZ + maxZ) / 2.0 + pos.getZ();
+        double centerX = (minX + maxX) / 2.0;
+        double centerZ = (minZ + maxZ) / 2.0;
 
         return new double[]{centerX, centerZ};
     }
