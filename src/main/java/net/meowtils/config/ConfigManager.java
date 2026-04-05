@@ -112,33 +112,27 @@ public class ConfigManager {
                 String key = parts[0].trim();
                 String value = parts[1].trim();
 
-                switch (key) {
-                    case "color1":
-                        if (COLOR_MAP.containsValue(value)) {
-                            color1 = value;
-                        }
-                        break;
-                    case "color2":
-                        if (COLOR_MAP.containsValue(value)) {
-                            color2 = value;
-                        }
-                        break;
-                    case "prefixText":
-                        prefixText = value;
-                        prefix = "[" + prefixText + "] ";
-                        break;
-                    case "cpReturnSlot":
-                        try {
-                            int slot = Integer.parseInt(value) - 1; // Convert 1-9 to 0-8
-                            if (slot >= 0 && slot <= 8) cpReturnSlot = slot;
-                        } catch (NumberFormatException e) { }
-                        break;
-                    case "cpSetSlot":
-                        try {
-                            int slot = Integer.parseInt(value) - 1; // Convert 1-9 to 0-8
-                            if (slot >= 0 && slot <= 8) cpSetSlot = slot;
-                        } catch (NumberFormatException e) { }
-                        break;
+                if (key.equals("color1")) {
+                    if (COLOR_MAP.containsValue(value)) {
+                        color1 = value;
+                    }
+                } else if (key.equals("color2")) {
+                    if (COLOR_MAP.containsValue(value)) {
+                        color2 = value;
+                    }
+                } else if (key.equals("prefixText")) {
+                    prefixText = value;
+                    prefix = "[" + prefixText + "] ";
+                } else if (key.equals("cpReturnSlot")) {
+                    try {
+                        int slot = Integer.parseInt(value) - 1; // Convert 1-9 to 0-8
+                        if (slot >= 0 && slot <= 8) cpReturnSlot = slot;
+                    } catch (NumberFormatException e) { }
+                } else if (key.equals("cpSetSlot")) {
+                    try {
+                        int slot = Integer.parseInt(value) - 1; // Convert 1-9 to 0-8
+                        if (slot >= 0 && slot <= 8) cpSetSlot = slot;
+                    } catch (NumberFormatException e) { }
                 }
             }
             reader.close();
@@ -164,3 +158,4 @@ public class ConfigManager {
             System.out.println("Failed to save Meowtils config: " + e.getMessage());
         }
     }
+}
