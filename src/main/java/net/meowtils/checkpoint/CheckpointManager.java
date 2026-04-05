@@ -42,7 +42,7 @@ public class CheckpointManager {
         }
     }
 
-    public void onClientTick() {
+    public void onClientTick(String color1, String color2, String reset, String prefix) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (!hotbarCPActive) return;
@@ -52,9 +52,9 @@ public class CheckpointManager {
 
         if (rightMouseDown && !rightMouseWasDown) {
             if (slot == 0) { // slot 1: return to CP
-                returnToCP(null, null, null, null);
+                returnToCP(color1, color2, reset, prefix);
             } else if (slot == 2) { // slot 3: set CP
-                setCP(null, null, null, null);
+                setCP(color1, color2, reset, prefix);
             }
         }
 
