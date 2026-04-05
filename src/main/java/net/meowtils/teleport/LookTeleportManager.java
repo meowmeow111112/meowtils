@@ -58,8 +58,8 @@ public class LookTeleportManager {
 
         if (boundingBox != null) {
             // Block has a collision box (e.g., solid block, fence, slab)
-            // Calculate standable position accounting for adjacent blocks
-            double[] standablePos = calculateStandablePosition(pos, boundingBox);
+            // Calculate standable position accounting for adjacent and overhead blocks
+            double[] standablePos = findSafeStandablePosition(pos, boundingBox);
             x = standablePos[0];
             y = boundingBox.maxY;
             z = standablePos[1];
@@ -86,59 +86,57 @@ public class LookTeleportManager {
         }
     }
 
-    private double[] calculateStandablePosition(net.minecraft.util.BlockPos pos, net.minecraft.util.AxisAlignedBB targetBox) {
-        // Start with the target block's bounding box in world coordinates
+    private double[] findSafeStandablePosition(net.minecraft.util.BlockPos pos, net.minecraft.util.AxisAlignedBB targetBox) {
         double minX = targetBox.minX;
         double maxX = targetBox.maxX;
         double minZ = targetBox.minZ;
         double maxZ = targetBox.maxZ;
+        double topY = targetBox.maxY;
+        double playerHalfWidth = 0.3;
+        double playerHeight = 1.8;
 
-        // Check all 4 horizontal adjacent blocks
-        net.minecraft.util.BlockPos[] adjacentPositions = {
-            pos.offset(net.minecraft.util.EnumFacing.NORTH),
-            pos.offset(net.minecraft.util.EnumFacing.SOUTH),
-            pos.offset(net.minecraft.util.EnumFacing.EAST),
-            pos.offset(net.minecraft.util.EnumFacing.WEST)
-        };
+        // Search candidate positions inside the block's top surface area
+        int samples = 5;
+        for (int xi = 0; xi < samples; xi++) {
+            for (int zi = 0; zi < samples; zi++) {
+                double x = minX + ((double) xi / (samples - 1)) * (maxX - minX);
+                double z = minZ + ((double) zi / (samples - 1)) * (maxZ - minZ);
+                net.minecraft.util.AxisAlignedBB playerBox = new net.minecraft.util.AxisAlignedBB(
+                    x - playerHalfWidth,
+                    topY,
+                    z - playerHalfWidth,
+                    x + playerHalfWidth,
+                    topY + playerHeight,
+                    z + playerHalfWidth
+                );
 
-        for (net.minecraft.util.BlockPos adjPos : adjacentPositions) {
-            net.minecraft.block.Block adjBlock = mc.theWorld.getBlockState(adjPos).getBlock();
-            net.minecraft.util.AxisAlignedBB adjBox = adjBlock.getCollisionBoundingBox(mc.theWorld, adjPos, mc.theWorld.getBlockState(adjPos));
+                if (isPlayerBoxClear(pos, playerBox)) {
+                    return new double[]{x, z};
+                }
+            }
+        }
 
-            if (adjBox != null) {
-                // Adjacent box is already in world coordinates
-                double adjMinX = adjBox.minX;
-                double adjMaxX = adjBox.maxX;
-                double adjMinZ = adjBox.minZ;
-                double adjMaxZ = adjBox.maxZ;
+        // Fallback to center if none of the sampled positions are clear
+        return new double[]{(minX + maxX) / 2.0, (minZ + maxZ) / 2.0};
+    }
 
-                // Check if adjacent block overlaps with target block's area
-                if (adjMinX < maxX && adjMaxX > minX && adjMinZ < maxZ && adjMaxZ > minZ) {
-                    // Adjacent block overlaps - constrain standable area away from it
-                    if (adjPos.getX() > pos.getX()) {
-                        // Adjacent is to the east - constrain max X
-                        maxX = Math.min(maxX, adjMinX);
-                    } else if (adjPos.getX() < pos.getX()) {
-                        // Adjacent is to the west - constrain min X
-                        minX = Math.max(minX, adjMaxX);
-                    }
+    private boolean isPlayerBoxClear(net.minecraft.util.BlockPos pos, net.minecraft.util.AxisAlignedBB playerBox) {
+        // Check blocks in a 3x3 horizontal area and up to 2 blocks above the target block
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                for (int dy = 0; dy <= 2; dy++) {
+                    net.minecraft.util.BlockPos checkPos = pos.add(dx, dy, dz);
+                    net.minecraft.block.Block block = mc.theWorld.getBlockState(checkPos).getBlock();
+                    net.minecraft.util.AxisAlignedBB box = block.getCollisionBoundingBox(mc.theWorld, checkPos, mc.theWorld.getBlockState(checkPos));
 
-                    if (adjPos.getZ() > pos.getZ()) {
-                        // Adjacent is to the south - constrain max Z
-                        maxZ = Math.min(maxZ, adjMinZ);
-                    } else if (adjPos.getZ() < pos.getZ()) {
-                        // Adjacent is to the north - constrain min Z
-                        minZ = Math.max(minZ, adjMaxZ);
+                    if (box != null && box.intersectsWith(playerBox)) {
+                        return false;
                     }
                 }
             }
         }
 
-        // Calculate center of the remaining standable area
-        double centerX = (minX + maxX) / 2.0;
-        double centerZ = (minZ + maxZ) / 2.0;
-
-        return new double[]{centerX, centerZ};
+        return true;
     }
 
     public interface TeleportCallback {
