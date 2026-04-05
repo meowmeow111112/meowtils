@@ -49,6 +49,7 @@ public class Meowtils {
         String plain = event.message.getUnformattedText();
         if (plain.contains("Teleporting you to") || plain.contains("Teleporting you")) {
             event.setCanceled(true);
+            teleportManager.onTeleportMessageReceived();
             teleportManager.clearSuppression();
         }
     }
