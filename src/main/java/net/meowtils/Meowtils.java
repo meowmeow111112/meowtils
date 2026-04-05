@@ -65,6 +65,6 @@ public class Meowtils {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         teleportManager.onClientTick();
-        checkpointManager.onClientTick(configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
+        checkpointManager.onClientTick(configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix(), configManager.getCpReturnSlot(), configManager.getCpSetSlot());
     }
 }

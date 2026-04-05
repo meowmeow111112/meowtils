@@ -42,7 +42,7 @@ public class CheckpointManager {
         }
     }
 
-    public void onClientTick(String color1, String color2, String reset, String prefix) {
+    public void onClientTick(String color1, String color2, String reset, String prefix, int cpReturnSlot, int cpSetSlot) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (!hotbarCPActive) return;
@@ -51,9 +51,9 @@ public class CheckpointManager {
         boolean rightMouseDown = org.lwjgl.input.Mouse.isButtonDown(1);
 
         if (rightMouseDown && !rightMouseWasDown) {
-            if (slot == 0) { // slot 1: return to CP
+            if (slot == cpReturnSlot) { // slot for return to CP
                 returnToCP(color1, color2, reset, prefix);
-            } else if (slot == 2) { // slot 3: set CP
+            } else if (slot == cpSetSlot) { // slot for set CP
                 setCP(color1, color2, reset, prefix);
             }
         }

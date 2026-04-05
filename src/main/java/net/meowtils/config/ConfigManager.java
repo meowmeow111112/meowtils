@@ -2,6 +2,10 @@ package net.meowtils.config;
 
 import net.minecraft.util.EnumChatFormatting;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,11 +15,19 @@ public class ConfigManager {
     private String reset = EnumChatFormatting.RESET.toString();
     private String prefixText = "Meowtils";
     private String prefix = "[" + prefixText + "] ";
+    private int cpReturnSlot = 0;   // Hotbar slot for checkpoint return (default: slot 1)
+    private int cpSetSlot = 2;      // Hotbar slot for checkpoint set (default: slot 3)
 
     private final Map<String, String> COLOR_MAP = new HashMap<String, String>();
+    private final Path configFile;
 
     public ConfigManager() {
+        // Get the .minecraft/config directory
+        String mcPath = System.getProperty("user.home") + File.separator + ".minecraft" + File.separator + "config";
+        configFile = Paths.get(mcPath, "meowtils.cfg");
+        
         initializeColorMap();
+        loadConfig();
     }
 
     private void initializeColorMap() {
@@ -42,22 +54,113 @@ public class ConfigManager {
     public String getReset() { return reset; }
     public String getPrefix() { return prefix; }
     public String getPrefixText() { return prefixText; }
+    public int getCpReturnSlot() { return cpReturnSlot; }
+    public int getCpSetSlot() { return cpSetSlot; }
     public Map<String, String> getColorMap() { return COLOR_MAP; }
 
     public void setColor1(String colorName) {
         if (COLOR_MAP.containsKey(colorName)) {
             color1 = COLOR_MAP.get(colorName);
+            saveConfig();
         }
     }
 
     public void setColor2(String colorName) {
         if (COLOR_MAP.containsKey(colorName)) {
             color2 = COLOR_MAP.get(colorName);
+            saveConfig();
         }
     }
 
     public void setPrefixText(String text) {
         prefixText = text;
         prefix = "[" + prefixText + "] ";
+        saveConfig();
     }
-}
+
+    public void setCpReturnSlot(int slot) {
+        if (slot >= 0 && slot <= 8) {
+            cpReturnSlot = slot;
+            saveConfig();
+        }
+    }
+
+    public void setCpSetSlot(int slot) {
+        if (slot >= 0 && slot <= 8) {
+            cpSetSlot = slot;
+            saveConfig();
+        }
+    }
+
+    private void loadConfig() {
+        try {
+            if (!Files.exists(configFile)) {
+                // Create default config if it doesn't exist
+                saveConfig();
+                return;
+            }
+
+            BufferedReader reader = new BufferedReader(new FileReader(configFile.toFile()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
+
+                String[] parts = line.split("=", 2);
+                if (parts.length != 2) continue;
+
+                String key = parts[0].trim();
+                String value = parts[1].trim();
+
+                switch (key) {
+                    case "color1":
+                        if (COLOR_MAP.containsValue(value)) {
+                            color1 = value;
+                        }
+                        break;
+                    case "color2":
+                        if (COLOR_MAP.containsValue(value)) {
+                            color2 = value;
+                        }
+                        break;
+                    case "prefixText":
+                        prefixText = value;
+                        prefix = "[" + prefixText + "] ";
+                        break;
+                    case "cpReturnSlot":
+                        try {
+                            int slot = Integer.parseInt(value) - 1; // Convert 1-9 to 0-8
+                            if (slot >= 0 && slot <= 8) cpReturnSlot = slot;
+                        } catch (NumberFormatException e) { }
+                        break;
+                    case "cpSetSlot":
+                        try {
+                            int slot = Integer.parseInt(value) - 1; // Convert 1-9 to 0-8
+                            if (slot >= 0 && slot <= 8) cpSetSlot = slot;
+                        } catch (NumberFormatException e) { }
+                        break;
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            System.out.println("Failed to load Meowtils config: " + e.getMessage());
+        }
+    }
+
+    private void saveConfig() {
+        try {
+            // Create directory if it doesn't exist
+            Files.createDirectories(configFile.getParent());
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(configFile.toFile()));
+            writer.write("# Meowtils Configuration\n");
+            writer.write("color1=" + color1 + "\n");
+            writer.write("color2=" + color2 + "\n");
+            writer.write("prefixText=" + prefixText + "\n");
+            writer.write("cpReturnSlot=" + (cpReturnSlot + 1) + "\n");
+            writer.write("cpSetSlot=" + (cpSetSlot + 1) + "\n");
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Failed to save Meowtils config: " + e.getMessage());
+        }
+    }
