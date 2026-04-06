@@ -68,7 +68,12 @@ public class LookTeleportManager {
                 return;
             }
             x = standablePos[0];
-            y = boundingBox.maxY;
+            // Special handling for blocks that are 1.5 blocks tall (fences, walls)
+            if (block instanceof net.minecraft.block.BlockFence || block instanceof net.minecraft.block.BlockWall) {
+                y = pos.getY() + 1.5;
+            } else {
+                y = boundingBox.maxY;
+            }
             z = standablePos[1];
         } else {
             // Fallback: center of block
