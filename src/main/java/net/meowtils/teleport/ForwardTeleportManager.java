@@ -44,12 +44,6 @@ public class ForwardTeleportManager {
         // Register suppression state before sending the teleport command.
         teleportCallback.suppressNextTeleportMessage();
         mc.thePlayer.sendChatMessage("/tp " + targetPos.xCoord + " " + targetPos.yCoord + " " + targetPos.zCoord);
-
-        if (color1 != null) {
-            String distanceLabel = configuredDistance <= 0.0 ? "infinite" : String.valueOf(configuredDistance);
-            mc.thePlayer.addChatMessage(new ChatComponentText(
-                color1 + prefix + color2 + "Teleported forward " + distanceLabel + " blocks." + reset));
-        }
     }
 
     public interface TeleportCallback {
