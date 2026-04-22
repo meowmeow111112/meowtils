@@ -39,7 +39,7 @@ public class ForwardTeleportManager {
             lookVec.xCoord * distance,
             lookVec.yCoord * distance,
             lookVec.zCoord * distance
-        );
+        ).addVector(0, -1.8, 0); // Adjust for player height;
 
         // Register suppression state before sending the teleport command.
         teleportCallback.suppressNextTeleportMessage();
