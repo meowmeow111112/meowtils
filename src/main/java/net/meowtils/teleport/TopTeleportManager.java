@@ -97,11 +97,6 @@ public class TopTeleportManager {
 
         // Send teleport command
         mc.thePlayer.sendChatMessage("/tp " + x + " " + y + " " + z);
-
-        if (color1 != null) {
-            mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
-                color1 + prefix + color2 + "Teleported!" + reset));
-        }
     }
 
     private double[] findSafeStandablePosition(net.minecraft.util.BlockPos pos, net.minecraft.block.Block block, net.minecraft.block.state.IBlockState blockState, net.minecraft.util.AxisAlignedBB targetBox, double standY, double preferredX, double preferredZ) {
