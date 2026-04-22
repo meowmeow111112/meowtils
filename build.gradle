@@ -45,7 +45,6 @@ repositories {
 dependencies {
     // specify the version of forge you want to develop for here, or in the minecraft closure above.
     // if you specify it here, it will override the version specified in the minecraft closure.
-    compile 'net.objecthunter:exp4j:0.4.8'
 }
 
 processResources

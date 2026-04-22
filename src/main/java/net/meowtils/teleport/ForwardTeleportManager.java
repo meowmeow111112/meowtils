@@ -39,7 +39,7 @@ public class ForwardTeleportManager {
             lookVec.xCoord * distance,
             lookVec.yCoord * distance,
             lookVec.zCoord * distance
-        ).addVector(0, -1.8, 0); // Adjust for player height;
+        ).addVector(0, -mc.thePlayer.getEyeHeight(), 0); // Convert eye-position target back to feet-position target.
 
         // Register suppression state before sending the teleport command.
         teleportCallback.suppressNextTeleportMessage();
