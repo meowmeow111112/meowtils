@@ -7,32 +7,32 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import org.lwjgl.input.Keyboard;
 
-public class LookTeleportManager {
+public class TopTeleportManager {
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    private final KeyBinding lookTeleportKey = new KeyBinding("Look Teleport", Keyboard.KEY_R, "Meowtils");
+    private final KeyBinding topTeleportKey = new KeyBinding("Teleport On Top", Keyboard.KEY_R, "Meowtils");
     private final TeleportCallback teleportCallback;
     private static final double RAY_CAST_DISTANCE = 256.0;
     private static final double COLLISION_EPSILON = 1.0E-4;
     private static final double TELEPORT_COORD_SCALE = 1000000.0;
 
-    public LookTeleportManager(TeleportCallback callback) {
+    public TopTeleportManager(TeleportCallback callback) {
         this.teleportCallback = callback;
     }
 
     public void register() {
-        ClientRegistry.registerKeyBinding(lookTeleportKey);
+        ClientRegistry.registerKeyBinding(topTeleportKey);
     }
 
     public void onKeyInput(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled) {
         if (mc.thePlayer == null) return;
 
-        if (lookTeleportKey.isPressed()) {
-            performLookTeleport(color1, color2, reset, prefix, safetyChecksEnabled);
+        if (topTeleportKey.isPressed()) {
+            performTopTeleport(color1, color2, reset, prefix, safetyChecksEnabled);
         }
     }
 
-    private void performLookTeleport(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled) {
+    private void performTopTeleport(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled) {
         // Cast a ray from the player's eyes along their look direction
         Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0F);
         Vec3 lookVec = mc.thePlayer.getLook(1.0F);
@@ -92,15 +92,11 @@ public class LookTeleportManager {
         y = normalizeTeleportCoordinate(y);
         z = normalizeTeleportCoordinate(z);
 
+        // Register suppression state before sending the teleport command.
+        teleportCallback.suppressNextTeleportMessage();
+
         // Send teleport command
         mc.thePlayer.sendChatMessage("/tp " + x + " " + y + " " + z);
-
-        // Register the teleport rotation callback
-        teleportCallback.setTeleportRotation(
-            mc.thePlayer.rotationYaw,
-            mc.thePlayer.rotationPitch,
-            new Vec3(x, y, z)
-        );
 
         if (color1 != null) {
             mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
@@ -227,7 +223,7 @@ public class LookTeleportManager {
     }
 
     public interface TeleportCallback {
-        void setTeleportRotation(float yaw, float pitch, Vec3 expectedPos);
+        void suppressNextTeleportMessage();
     }
 }
 

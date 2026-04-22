@@ -17,7 +17,7 @@ public class ConfigManager {
     private String prefix = "[" + prefixText + "] ";
     private int cpReturnSlot = 0;   // Hotbar slot for checkpoint return (default: slot 1)
     private int cpSetSlot = 2;      // Hotbar slot for checkpoint set (default: slot 3)
-    private boolean lookTeleportSafetyChecks = false;
+    private boolean topTeleportSafetyChecks = false;
     private double tpForwardDistance = 8.0;
 
     private final Map<String, String> COLOR_MAP = new HashMap<String, String>();
@@ -58,7 +58,7 @@ public class ConfigManager {
     public String getPrefixText() { return prefixText; }
     public int getCpReturnSlot() { return cpReturnSlot; }
     public int getCpSetSlot() { return cpSetSlot; }
-    public boolean isLookTeleportSafetyChecksEnabled() { return lookTeleportSafetyChecks; }
+    public boolean isTopTeleportSafetyChecksEnabled() { return topTeleportSafetyChecks; }
     public double getTpForwardDistance() { return tpForwardDistance; }
     public Map<String, String> getColorMap() { return COLOR_MAP; }
 
@@ -96,8 +96,8 @@ public class ConfigManager {
         }
     }
 
-    public void setLookTeleportSafetyChecks(boolean enabled) {
-        lookTeleportSafetyChecks = enabled;
+    public void setTopTeleportSafetyChecks(boolean enabled) {
+        topTeleportSafetyChecks = enabled;
         saveConfig();
     }
 
@@ -149,8 +149,8 @@ public class ConfigManager {
                         int slot = Integer.parseInt(value) - 1; // Convert 1-9 to 0-8
                         if (slot >= 0 && slot <= 8) cpSetSlot = slot;
                     } catch (NumberFormatException e) { }
-                } else if (key.equals("lookTeleportSafetyChecks")) {
-                    lookTeleportSafetyChecks = value.equalsIgnoreCase("true");
+                } else if (key.equals("topTeleportSafetyChecks") || key.equals("lookTeleportSafetyChecks")) {
+                    topTeleportSafetyChecks = value.equalsIgnoreCase("true");
                 } else if (key.equals("tpForwardDistance")) {
                     if (value.equalsIgnoreCase("infinite")) {
                         tpForwardDistance = -1.0;
@@ -182,7 +182,7 @@ public class ConfigManager {
             writer.write("prefixText=" + prefixText + "\n");
             writer.write("cpReturnSlot=" + (cpReturnSlot + 1) + "\n");
             writer.write("cpSetSlot=" + (cpSetSlot + 1) + "\n");
-            writer.write("lookTeleportSafetyChecks=" + lookTeleportSafetyChecks + "\n");
+            writer.write("topTeleportSafetyChecks=" + topTeleportSafetyChecks + "\n");
             writer.write("tpForwardDistance=" + (tpForwardDistance == -1.0 ? "infinite" : tpForwardDistance) + "\n");
             writer.close();
         } catch (IOException e) {
