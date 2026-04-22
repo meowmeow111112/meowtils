@@ -22,7 +22,7 @@ public class TPCommand implements ICommand {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tp <x> <y> <z> [yaw] [pitch] (use ~ for relative)"; // TO DO: Add support for expressions like 90 + 50
+        return "/tp <x> <y> <z> [yaw] [pitch] (supports + - * /, parentheses, and ~ for relative)";
     }
 
     @Override
@@ -66,11 +66,11 @@ public class TPCommand implements ICommand {
 
     private double parseCoordinate(String arg, double current) {
         if (arg.startsWith("~")) {
-            String value = arg.substring(1);
-            double offset = value.isEmpty() ? 0 : Double.parseDouble(value);
+            String value = arg.substring(1).trim();
+            double offset = value.isEmpty() ? 0 : ExpressionEvaluator.evaluate(value);
             return current + offset;
         }
-        return Double.parseDouble(arg);
+        return ExpressionEvaluator.evaluate(arg);
     }
 
     @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
