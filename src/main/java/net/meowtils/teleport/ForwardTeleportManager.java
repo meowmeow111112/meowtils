@@ -48,7 +48,7 @@ public class ForwardTeleportManager {
         if (color1 != null) {
             String distanceLabel = configuredDistance <= 0.0 ? "infinite" : String.valueOf(configuredDistance);
             mc.thePlayer.addChatMessage(new ChatComponentText(
-                color1 + prefix + color2 + "Teleported forward (" + distanceLabel + ")." + reset));
+                color1 + prefix + color2 + "Teleported forward " + distanceLabel + " blocks." + reset));
         }
     }
 
