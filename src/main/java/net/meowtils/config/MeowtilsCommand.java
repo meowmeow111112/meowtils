@@ -20,7 +20,7 @@ public class MeowtilsCommand implements ICommand {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/meowtils <color1|color2> <color_name> | /meowtils prefix <text> | /meowtils crs <slot> | /meowtils css <slot> | /meowtils list";
+        return "/meowtils <color1|color2> <color_name> | /meowtils prefix <text> | /meowtils crs <slot> | /meowtils css <slot> | /meowtils tpdist <value|infinite> | /meowtils list";
     }
 
     @Override
@@ -104,6 +104,34 @@ public class MeowtilsCommand implements ICommand {
                 sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Checkpoint set slot set to " + (slot + 1) + "." + reset));
             } catch (NumberFormatException e) {
                 sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid slot number." + reset));
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("tpdist") || args[0].equalsIgnoreCase("teleportforwarddistance")) {
+            if (args.length < 2) {
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /meowtils tpdist <value|infinite>" + reset));
+                return;
+            }
+
+            String raw = args[1];
+            if (raw.equalsIgnoreCase("infinite")) {
+                configManager.setTpForwardDistance(-1.0);
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Teleport forward distance set to infinite." + reset));
+                return;
+            }
+
+            try {
+                double distance = Double.parseDouble(raw);
+                if (distance <= 0.0) {
+                    sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Distance must be greater than 0, or use 'infinite'." + reset));
+                    return;
+                }
+
+                configManager.setTpForwardDistance(distance);
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Teleport forward distance set to " + distance + "." + reset));
+            } catch (NumberFormatException e) {
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid distance. Use a number or 'infinite'." + reset));
             }
             return;
         }

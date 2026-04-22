@@ -15,6 +15,7 @@ import net.meowtils.teleport.TeleportManager;
 import net.meowtils.teleport.TPCommand;
 import net.meowtils.teleport.TPFCommand;
 import net.meowtils.teleport.LookTeleportManager;
+import net.meowtils.teleport.ForwardTeleportManager;
 
 @Mod(modid = "meowtils", name = "Meowtils", version = "1.0", clientSideOnly = true)
 public class Meowtils {
@@ -35,11 +36,18 @@ public class Meowtils {
             teleportManager.setTeleportRotation(yaw, pitch, expectedPos);
         }
     });
+    private final ForwardTeleportManager forwardTeleportManager = new ForwardTeleportManager(new ForwardTeleportManager.TeleportCallback() {
+        @Override
+        public void setTeleportRotation(float yaw, float pitch, net.minecraft.util.Vec3 expectedPos) {
+            teleportManager.setTeleportRotation(yaw, pitch, expectedPos);
+        }
+    });
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         checkpointManager.register();
         lookTeleportManager.register();
+        forwardTeleportManager.register();
 
         ClientCommandHandler.instance.registerCommand(new TPCommand(teleportManager));
         ClientCommandHandler.instance.registerCommand(new TPFCommand());
@@ -66,7 +74,20 @@ public class Meowtils {
     public void onKeyInput(KeyInputEvent event) {
         if (mc.thePlayer == null) return;
         checkpointManager.onKeyInput(configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
-        lookTeleportManager.onKeyInput(configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
+        lookTeleportManager.onKeyInput(
+            configManager.getColor1(),
+            configManager.getColor2(),
+            configManager.getReset(),
+            configManager.getPrefix(),
+            configManager.isLookTeleportSafetyChecksEnabled()
+        );
+        forwardTeleportManager.onKeyInput(
+            configManager.getColor1(),
+            configManager.getColor2(),
+            configManager.getReset(),
+            configManager.getPrefix(),
+            configManager.getTpForwardDistance()
+        );
     }
 
     @SubscribeEvent
