@@ -22,7 +22,7 @@ public class TPCommand implements ICommand {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/tp <x> <y> <z> [yaw] [pitch] (use ~ for relative)"; // TODO: Add support for expressions like 90 + 50
+        return "/tp <x> <y> <z> [yaw] [pitch] (use ~ for relative)"; // TO DO: Add support for expressions like 90 + 50
     }
 
     @Override
