@@ -17,13 +17,17 @@ public class TeleportManager {
 
     private boolean suppressNextTeleportServerMessage = false;
 
+    public void suppressNextTeleportMessage() {
+        suppressNextTeleportServerMessage = true;
+    }
+
     public void setTeleportRotation(float yaw, float pitch, Vec3 expectedPos) {
         pendingTeleportRotation = true;
         pendingYaw = yaw;
         pendingPitch = pitch;
         expectedTeleportPos = expectedPos;
         teleportStartTime = System.currentTimeMillis();
-        suppressNextTeleportServerMessage = true;
+        suppressNextTeleportMessage();
 
         if (expectedTeleportPos != null) {
             double dx = Math.abs(mc.thePlayer.posX - expectedTeleportPos.xCoord);

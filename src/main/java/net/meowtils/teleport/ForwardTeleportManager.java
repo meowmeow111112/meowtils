@@ -41,12 +41,9 @@ public class ForwardTeleportManager {
             lookVec.zCoord * distance
         );
 
+        // Register suppression state before sending the teleport command.
+        teleportCallback.suppressNextTeleportMessage();
         mc.thePlayer.sendChatMessage("/tp " + targetPos.xCoord + " " + targetPos.yCoord + " " + targetPos.zCoord);
-        teleportCallback.setTeleportRotation(
-            mc.thePlayer.rotationYaw,
-            mc.thePlayer.rotationPitch,
-            targetPos
-        );
 
         if (color1 != null) {
             String distanceLabel = configuredDistance <= 0.0 ? "infinite" : String.valueOf(configuredDistance);
@@ -56,6 +53,6 @@ public class ForwardTeleportManager {
     }
 
     public interface TeleportCallback {
-        void setTeleportRotation(float yaw, float pitch, Vec3 expectedPos);
+        void suppressNextTeleportMessage();
     }
 }
