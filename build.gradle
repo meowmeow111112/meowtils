@@ -3,6 +3,7 @@
 buildscript {
     repositories {
         jcenter()
+        mavenCentral()
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
@@ -37,9 +38,14 @@ minecraft {
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     // specify the version of forge you want to develop for here, or in the minecraft closure above.
     // if you specify it here, it will override the version specified in the minecraft closure.
+    compile 'net.objecthunter:exp4j:0.4.8'
 }
 
 processResources
