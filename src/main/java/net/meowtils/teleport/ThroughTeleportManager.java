@@ -20,7 +20,7 @@ public class ThroughTeleportManager {
     private static final double FACE_OFFSET = 0.05;
     private static final double SEARCH_STEP = 0.01;
     private static final double VERTICAL_ADJUST_STEP = 0.05;
-    private static final double MAX_VERTICAL_ADJUST = 2.0;
+    private static final double MAX_VERTICAL_ADJUST = 0.5;
 
     public ThroughTeleportManager(TeleportCallback callback) {
         this.teleportCallback = callback;
@@ -93,6 +93,11 @@ public class ThroughTeleportManager {
             double feetY = eyeY - mc.thePlayer.getEyeHeight();
             double feetZ = eyeZ;
 
+            // Only attempt vertical fitting when the straight search line reaches air.
+            if (!isSearchLineAir(eyeX, eyeY, eyeZ)) {
+                continue;
+            }
+
             double adjustedFeetY = findAdjustedFeetY(feetX, feetY, feetZ);
             if (Double.isNaN(adjustedFeetY)) {
                 continue;
@@ -123,6 +128,10 @@ public class ThroughTeleportManager {
 
         AxisAlignedBB expandedPlayerBox = playerBox.expand(COLLISION_EPSILON, 0.0, COLLISION_EPSILON);
         return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, expandedPlayerBox).isEmpty();
+    }
+
+    private boolean isSearchLineAir(double x, double y, double z) {
+        return mc.theWorld.isAirBlock(new BlockPos(x, y, z));
     }
 
     private double findAdjustedFeetY(double x, double feetY, double z) {
