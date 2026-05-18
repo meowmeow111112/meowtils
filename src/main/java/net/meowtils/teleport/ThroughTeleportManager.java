@@ -55,7 +55,8 @@ public class ThroughTeleportManager {
             rayTraceResult.sideHit.getFrontOffsetY(),
             rayTraceResult.sideHit.getFrontOffsetZ()
         );
-        Vec3 searchStart = rayTraceResult.hitVec.addVector(faceNormal.xCoord * FACE_OFFSET, faceNormal.yCoord * FACE_OFFSET, faceNormal.zCoord * FACE_OFFSET);
+        Vec3 throughDirection = new Vec3(-faceNormal.xCoord, -faceNormal.yCoord, -faceNormal.zCoord);
+        Vec3 searchStart = rayTraceResult.hitVec.addVector(throughDirection.xCoord * FACE_OFFSET, throughDirection.yCoord * FACE_OFFSET, throughDirection.zCoord * FACE_OFFSET);
         BlockPos blockPos = rayTraceResult.getBlockPos();
         double centerX = blockPos.getX() + 0.5D;
         double centerZ = blockPos.getZ() + 0.5D;
@@ -68,18 +69,18 @@ public class ThroughTeleportManager {
             switch (rayTraceResult.sideHit) {
                 case WEST:
                 case EAST:
-                    feetX = searchStart.xCoord + faceNormal.xCoord * distance;
+                    feetX = searchStart.xCoord + throughDirection.xCoord * distance;
                     feetZ = centerZ;
                     break;
                 case NORTH:
                 case SOUTH:
                     feetX = centerX;
-                    feetZ = searchStart.zCoord + faceNormal.zCoord * distance;
+                    feetZ = searchStart.zCoord + throughDirection.zCoord * distance;
                     break;
                 case DOWN:
                 case UP:
                     feetX = centerX;
-                    feetY = searchStart.yCoord + faceNormal.yCoord * distance;
+                    feetY = searchStart.yCoord + throughDirection.yCoord * distance;
                     feetZ = centerZ;
                     break;
                 default:
