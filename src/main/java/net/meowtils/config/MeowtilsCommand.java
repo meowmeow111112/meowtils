@@ -68,6 +68,10 @@ public class MeowtilsCommand implements ICommand {
             return;
         }
 
+        if (handleTopTeleportSafetyCommand(sender, command, color1, color2, reset, prefix)) {
+            return;
+        }
+
         if (handleColorCommand(sender, args, command, color1, color2, reset, prefix)) {
             return;
         }
@@ -99,13 +103,14 @@ public class MeowtilsCommand implements ICommand {
         }
 
         sender.addChatMessage(new ChatComponentText(color1 + prefix + "Available commands:" + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "prefix:" + color2 + "Set the chat prefix" + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "crs:" + color2 + "Set the hotbar slot for checkpoint return" + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "css:" + color2 + "Set the hotbar slot for checkpoint set" + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "tpdist:" + color2 + "Set forward teleport distance" + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "color1:" + color2 + "Set the first chat color" + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "color2:" + color2 + "Set the second chat color" + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "list:" + color2 + "Show available colors" + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "prefix:" + color2 + "Set the chat prefix." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "crs:" + color2 + "Set the hotbar slot for checkpoint return." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "css:" + color2 + "Set the hotbar slot for checkpoint set." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "safetp:" + color2 + "Toggle safety checks for TP on top." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "tpdist:" + color2 + "Set forward teleport distance." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "color1:" + color2 + "Set the first chat color." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "color2:" + color2 + "Set the second chat color." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "list:" + color2 + "Show available colors." + reset));
         return true;
     }
 
@@ -187,29 +192,35 @@ public class MeowtilsCommand implements ICommand {
         }
 
         if (args.length < 2) {
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /meowtils tpdist <value|infinite>" + reset));
-            return true;
-        }
-
-        String raw = args[1];
-        if (raw.equalsIgnoreCase("infinite")) {
-            configManager.setTpForwardDistance(-1.0);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Teleport forward distance set to infinite." + reset));
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /meowtils tpdist <positive distance>" + reset));
             return true;
         }
 
         try {
-            double distance = Double.parseDouble(raw);
+            double distance = Double.parseDouble(args[1]);
             if (distance <= 0.0) {
-                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Distance must be greater than 0, or use 'infinite'." + reset));
+                sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Distance must be greater than 0." + reset));
                 return true;
             }
 
             configManager.setTpForwardDistance(distance);
             sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Teleport forward distance set to " + distance + "." + reset));
         } catch (NumberFormatException e) {
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid distance. Use a number or 'infinite'." + reset));
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid distance. Use a positive number." + reset));
         }
+        return true;
+    }
+
+    private boolean handleTopTeleportSafetyCommand(ICommandSender sender, String command, String color1, String color2, String reset, String prefix) {
+        if (!command.equals("safetp") && !command.equals("safeteleport")) {
+            return false;
+        }
+
+        configManager.toggleTopTeleportSafetyChecks();
+        boolean enabled = configManager.isTopTeleportSafetyChecksEnabled();
+        sender.addChatMessage(new ChatComponentText(
+            color1 + prefix + color2 + "TP on top safety checks " + (enabled ? "enabled" : "disabled") + "." + reset
+        ));
         return true;
     }
 

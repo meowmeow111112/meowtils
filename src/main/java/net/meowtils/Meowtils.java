@@ -16,6 +16,7 @@ import net.meowtils.teleport.TPCommand;
 import net.meowtils.teleport.TPFCommand;
 import net.meowtils.teleport.TopTeleportManager;
 import net.meowtils.teleport.ForwardTeleportManager;
+import net.meowtils.teleport.ThroughTeleportManager;
 
 @Mod(modid = "meowtils", name = "Meowtils", version = "1.0", clientSideOnly = true)
 public class Meowtils {
@@ -42,12 +43,19 @@ public class Meowtils {
             teleportManager.suppressNextTeleportMessage();
         }
     });
+    private final ThroughTeleportManager throughTeleportManager = new ThroughTeleportManager(new ThroughTeleportManager.TeleportCallback() {
+        @Override
+        public void suppressNextTeleportMessage() {
+            teleportManager.suppressNextTeleportMessage();
+        }
+    });
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         checkpointManager.register();
         topTeleportManager.register();
         forwardTeleportManager.register();
+        throughTeleportManager.register();
 
         ClientCommandHandler.instance.registerCommand(new TPCommand(teleportManager));
         ClientCommandHandler.instance.registerCommand(new TPFCommand());
@@ -87,6 +95,12 @@ public class Meowtils {
             configManager.getReset(),
             configManager.getPrefix(),
             configManager.getTpForwardDistance()
+        );
+        throughTeleportManager.onKeyInput(
+            configManager.getColor1(),
+            configManager.getColor2(),
+            configManager.getReset(),
+            configManager.getPrefix()
         );
     }
 
