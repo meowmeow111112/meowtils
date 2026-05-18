@@ -18,7 +18,9 @@ public class ThroughTeleportManager {
     private static final double RAY_CAST_DISTANCE = 256.0;
     private static final double COLLISION_EPSILON = 1.0E-4;
     private static final double FACE_OFFSET = 0.05;
-    private static final double SEARCH_STEP = 0.1;
+    private static final double SEARCH_STEP = 0.01;
+    private static final double VERTICAL_ADJUST_STEP = 0.05;
+    private static final double MAX_VERTICAL_ADJUST = 2.0;
 
     public ThroughTeleportManager(TeleportCallback callback) {
         this.teleportCallback = callback;
@@ -62,37 +64,42 @@ public class ThroughTeleportManager {
         double centerZ = blockPos.getZ() + 0.5D;
 
         for (double distance = 0.0; distance <= RAY_CAST_DISTANCE; distance += SEARCH_STEP) {
-            double feetX = rayTraceResult.hitVec.xCoord;
-            double feetY = rayTraceResult.hitVec.yCoord;
-            double feetZ = rayTraceResult.hitVec.zCoord;
+            double eyeX = rayTraceResult.hitVec.xCoord;
+            double eyeY = rayTraceResult.hitVec.yCoord;
+            double eyeZ = rayTraceResult.hitVec.zCoord;
 
             switch (rayTraceResult.sideHit) {
                 case WEST:
                 case EAST:
-                    feetX = searchStart.xCoord + throughDirection.xCoord * distance;
-                    feetZ = centerZ;
+                    eyeX = searchStart.xCoord + throughDirection.xCoord * distance;
+                    eyeZ = centerZ;
                     break;
                 case NORTH:
                 case SOUTH:
-                    feetX = centerX;
-                    feetZ = searchStart.zCoord + throughDirection.zCoord * distance;
+                    eyeX = centerX;
+                    eyeZ = searchStart.zCoord + throughDirection.zCoord * distance;
                     break;
                 case DOWN:
                 case UP:
-                    feetX = centerX;
-                    feetY = searchStart.yCoord + throughDirection.yCoord * distance;
-                    feetZ = centerZ;
+                    eyeX = centerX;
+                    eyeY = searchStart.yCoord + throughDirection.yCoord * distance;
+                    eyeZ = centerZ;
                     break;
                 default:
                     break;
             }
 
-            if (!isPlayerBoxClear(feetX, feetY, feetZ)) {
+            double feetX = eyeX;
+            double feetY = eyeY - mc.thePlayer.getEyeHeight();
+            double feetZ = eyeZ;
+
+            double adjustedFeetY = findAdjustedFeetY(feetX, feetY, feetZ);
+            if (Double.isNaN(adjustedFeetY)) {
                 continue;
             }
 
             teleportCallback.suppressNextTeleportMessage();
-            mc.thePlayer.sendChatMessage("/tp " + feetX + " " + feetY + " " + feetZ);
+            mc.thePlayer.sendChatMessage("/tp " + feetX + " " + adjustedFeetY + " " + feetZ);
             return;
         }
 
@@ -116,6 +123,26 @@ public class ThroughTeleportManager {
 
         AxisAlignedBB expandedPlayerBox = playerBox.expand(COLLISION_EPSILON, 0.0, COLLISION_EPSILON);
         return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, expandedPlayerBox).isEmpty();
+    }
+
+    private double findAdjustedFeetY(double x, double feetY, double z) {
+        if (isPlayerBoxClear(x, feetY, z)) {
+            return feetY;
+        }
+
+        for (double offset = VERTICAL_ADJUST_STEP; offset <= MAX_VERTICAL_ADJUST; offset += VERTICAL_ADJUST_STEP) {
+            double lowerY = feetY - offset;
+            if (isPlayerBoxClear(x, lowerY, z)) {
+                return lowerY;
+            }
+
+            double higherY = feetY + offset;
+            if (isPlayerBoxClear(x, higherY, z)) {
+                return higherY;
+            }
+        }
+
+        return Double.NaN;
     }
 
     public interface TeleportCallback {
