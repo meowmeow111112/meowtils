@@ -17,7 +17,7 @@ public class ConfigManager {
     private String prefix = "[" + prefixText + "] ";
     private int cpReturnSlot = 0;   // Hotbar slot for checkpoint return (default: slot 1)
     private int cpSetSlot = 2;      // Hotbar slot for checkpoint set (default: slot 3)
-    private boolean topTeleportSafetyChecks = false;
+    private boolean topTeleportSafetyChecks = true;
     private double tpForwardDistance = 8.0;
 
     private final Map<String, String> COLOR_MAP = new HashMap<String, String>();
@@ -61,6 +61,11 @@ public class ConfigManager {
     public boolean isTopTeleportSafetyChecksEnabled() { return topTeleportSafetyChecks; }
     public double getTpForwardDistance() { return tpForwardDistance; }
     public Map<String, String> getColorMap() { return COLOR_MAP; }
+
+    public void toggleTopTeleportSafetyChecks() {
+        topTeleportSafetyChecks = !topTeleportSafetyChecks;
+        saveConfig();
+    }
 
     public void setColor1(String colorName) {
         if (COLOR_MAP.containsKey(colorName)) {
@@ -152,16 +157,12 @@ public class ConfigManager {
                 } else if (key.equals("topTeleportSafetyChecks") || key.equals("lookTeleportSafetyChecks")) {
                     topTeleportSafetyChecks = value.equalsIgnoreCase("true");
                 } else if (key.equals("tpForwardDistance")) {
-                    if (value.equalsIgnoreCase("infinite")) {
-                        tpForwardDistance = -1.0;
-                    } else {
-                        try {
-                            double distance = Double.parseDouble(value);
-                            if (distance > 0.0 || distance == -1.0) {
-                                tpForwardDistance = distance;
-                            }
-                        } catch (NumberFormatException e) { }
-                    }
+                    try {
+                        double distance = Double.parseDouble(value);
+                        if (distance > 0.0) {
+                            tpForwardDistance = distance;
+                        }
+                    } catch (NumberFormatException e) { }
                 }
             }
             reader.close();
@@ -183,7 +184,7 @@ public class ConfigManager {
             writer.write("cpReturnSlot=" + (cpReturnSlot + 1) + "\n");
             writer.write("cpSetSlot=" + (cpSetSlot + 1) + "\n");
             writer.write("topTeleportSafetyChecks=" + topTeleportSafetyChecks + "\n");
-            writer.write("tpForwardDistance=" + (tpForwardDistance == -1.0 ? "infinite" : tpForwardDistance) + "\n");
+            writer.write("tpForwardDistance=" + tpForwardDistance + "\n");
             writer.close();
         } catch (IOException e) {
             System.out.println("Failed to save Meowtils config: " + e.getMessage());
