@@ -19,8 +19,11 @@ public class ThroughTeleportManager {
     private static final double COLLISION_EPSILON = 1.0E-4;
     private static final double FACE_OFFSET = 0.05;
     private static final double SEARCH_STEP = 0.01;
+
     private static final double VERTICAL_ADJUST_STEP = 0.05;
-    private static final double MAX_VERTICAL_ADJUST = 0.5;
+    private static final double SNAP_SCALE = 16.0;
+    private static final double LILYPAD_HEIGHT = 0.015625;
+    private static final double Y_EPSILON = 1.0E-8;
 
     public ThroughTeleportManager(TeleportCallback callback) {
         this.teleportCallback = callback;
@@ -90,22 +93,63 @@ public class ThroughTeleportManager {
             }
 
             double feetX = eyeX;
-            double feetY = eyeY - mc.thePlayer.getEyeHeight();
             double feetZ = eyeZ;
 
-            // Only attempt vertical fitting when the straight search line reaches air.
-            if (!isSearchLineAir(eyeX, eyeY, eyeZ)) {
+            // Only attempt teleport when a zero-height probe (point) is clear at the sampled line.
+            if (!isProbePointClear(eyeX, eyeY, eyeZ)) {
                 continue;
             }
 
-            double adjustedFeetY = findAdjustedFeetY(feetX, feetY, feetZ);
-            if (Double.isNaN(adjustedFeetY)) {
-                continue;
+            double eyeHeight = mc.thePlayer.getEyeHeight();
+            double playerHeight = mc.thePlayer.height;
+
+            // Candidate anchor positions relative to probe Y:
+            //  - eyeAlignedFeet: feet such that eye is at probe Y
+            //  - feetAtProbe: feet such that feet are at probe Y (highest feet)
+            //  - headAlignedFeet: feet such that head/top is at probe Y (lowest feet)
+            double eyeAlignedFeet = eyeY - eyeHeight;
+            double feetAtProbe = eyeY;
+            double headAlignedFeet = eyeY - playerHeight;
+
+            // If eye-aligned placement is valid, prefer it (preserves where the eye was aimed).
+            if (isPlayerBoxClear(feetX, eyeAlignedFeet, feetZ)) {
+                teleportCallback.suppressNextTeleportMessage();
+                mc.thePlayer.sendChatMessage("/tp " + feetX + " " + eyeAlignedFeet + " " + feetZ);
+                return;
             }
 
-            teleportCallback.suppressNextTeleportMessage();
-            mc.thePlayer.sendChatMessage("/tp " + feetX + " " + adjustedFeetY + " " + feetZ);
-            return;
+            // Fast-head fallback: place head directly under the block above the current probe block.
+            BlockPos probeBlockPos = new BlockPos(eyeX, eyeY, eyeZ);
+            double blockAboveProbeY = probeBlockPos.getY() + 1.0;
+            double feetWithHeadUnderBlockAbove = blockAboveProbeY - playerHeight;
+            if (isPlayerBoxClear(feetX, feetWithHeadUnderBlockAbove, feetZ)) {
+                teleportCallback.suppressNextTeleportMessage();
+                mc.thePlayer.sendChatMessage("/tp " + feetX + " " + feetWithHeadUnderBlockAbove + " " + feetZ);
+                return;
+            }
+
+            // Otherwise, perform a stepped search starting at the head-aligned feet (lowest)
+            // and move up toward feetAtProbe so we prefer landing on a block (feet above floor).
+            double step = VERTICAL_ADJUST_STEP;
+            if (headAlignedFeet <= feetAtProbe) {
+                for (double y = headAlignedFeet; y <= feetAtProbe; y += step) {
+                    double candidateY = getMarchCandidateY(feetX, y, feetZ);
+                    if (!Double.isNaN(candidateY)) {
+                        teleportCallback.suppressNextTeleportMessage();
+                        mc.thePlayer.sendChatMessage("/tp " + feetX + " " + candidateY + " " + feetZ);
+                        return;
+                    }
+                }
+            } else {
+                for (double y = headAlignedFeet; y >= feetAtProbe; y -= step) {
+                    double candidateY = getMarchCandidateY(feetX, y, feetZ);
+                    if (!Double.isNaN(candidateY)) {
+                        teleportCallback.suppressNextTeleportMessage();
+                        mc.thePlayer.sendChatMessage("/tp " + feetX + " " + candidateY + " " + feetZ);
+                        return;
+                    }
+                }
+            }
         }
 
         if (color1 != null) {
@@ -114,8 +158,29 @@ public class ThroughTeleportManager {
     }
 
     private boolean isPlayerBoxClear(double x, double standY, double z) {
+        return isPlayerBoxClear(x, standY, z, mc.thePlayer.height);
+    }
+
+    
+
+    private boolean isProbePointClear(double x, double y, double z) {
         double playerHalfWidth = mc.thePlayer.width / 2.0;
-        double playerHeight = mc.thePlayer.height;
+
+        AxisAlignedBB probeBox = new AxisAlignedBB(
+            x - playerHalfWidth,
+            y,
+            z - playerHalfWidth,
+            x + playerHalfWidth,
+            y,
+            z + playerHalfWidth
+        );
+
+        AxisAlignedBB expandedProbeBox = probeBox.expand(COLLISION_EPSILON, 0.0, COLLISION_EPSILON);
+        return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, expandedProbeBox).isEmpty();
+    }
+
+    private boolean isPlayerBoxClear(double x, double standY, double z, double playerHeight) {
+        double playerHalfWidth = mc.thePlayer.width / 2.0;
 
         AxisAlignedBB playerBox = new AxisAlignedBB(
             x - playerHalfWidth,
@@ -130,24 +195,17 @@ public class ThroughTeleportManager {
         return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, expandedPlayerBox).isEmpty();
     }
 
-    private boolean isSearchLineAir(double x, double y, double z) {
-        return mc.theWorld.isAirBlock(new BlockPos(x, y, z));
-    }
-
-    private double findAdjustedFeetY(double x, double feetY, double z) {
-        if (isPlayerBoxClear(x, feetY, z)) {
-            return feetY;
+    private double getMarchCandidateY(double x, double y, double z) {
+        double snappedY = Math.floor((y * SNAP_SCALE) + Y_EPSILON) / SNAP_SCALE;
+        if (isPlayerBoxClear(x, snappedY, z)) {
+            return snappedY;
         }
 
-        for (double offset = VERTICAL_ADJUST_STEP; offset <= MAX_VERTICAL_ADJUST; offset += VERTICAL_ADJUST_STEP) {
-            double lowerY = feetY - offset;
-            if (isPlayerBoxClear(x, lowerY, z)) {
-                return lowerY;
-            }
-
-            double higherY = feetY + offset;
-            if (isPlayerBoxClear(x, higherY, z)) {
-                return higherY;
+        // If snappedY is on a whole block level (.. .00), try lilypad-height offset.
+        if (Math.abs(snappedY - Math.floor(snappedY + Y_EPSILON)) <= Y_EPSILON) {
+            double lilyAdjustedY = snappedY + LILYPAD_HEIGHT;
+            if (isPlayerBoxClear(x, lilyAdjustedY, z)) {
+                return lilyAdjustedY;
             }
         }
 
