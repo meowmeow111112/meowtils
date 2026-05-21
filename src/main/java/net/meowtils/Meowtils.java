@@ -2,6 +2,7 @@ package net.meowtils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -125,6 +126,26 @@ public class Meowtils {
     }
 
     @SubscribeEvent
+    public void onMouseInput(MouseEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+
+        boolean parkourBlocked = parkourManager.shouldBlockTeleportHotkeys();
+        boolean consumed = checkpointManager.onMouseInput(
+            configManager.getColor1(),
+            configManager.getColor2(),
+            configManager.getReset(),
+            configManager.getPrefix(),
+            configManager.getCpReturnSlot(),
+            configManager.getCpSetSlot(),
+            parkourBlocked
+        );
+
+        if (consumed) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -132,7 +153,6 @@ public class Meowtils {
         parkourManager.onClientTick();
         updateParkourHotbarState();
         teleportManager.onClientTick();
-        checkpointManager.onClientTick(configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix(), configManager.getCpReturnSlot(), configManager.getCpSetSlot());
     }
 
     private void updateParkourHotbarState() {

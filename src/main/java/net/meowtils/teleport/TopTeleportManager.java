@@ -19,6 +19,8 @@ public class TopTeleportManager {
     private static final int FALLBACK_CENTER = 2;
     private static final int FALLBACK_EDGE = 3;
     private static final double EDGE_CLIP_EPSILON = 1.0E-10;
+    private static final double IGNORE_RAY_ADVANCE_STEP = 0.1;
+    private static final int IGNORE_RAY_MAX_STEPS = 64;
 
     public TopTeleportManager(TeleportCallback callback) {
         this.teleportCallback = callback;
@@ -42,13 +44,14 @@ public class TopTeleportManager {
         Vec3 lookVec = mc.thePlayer.getLook(1.0F);
         Vec3 reachVec = eyePos.addVector(lookVec.xCoord * RAY_CAST_DISTANCE, lookVec.yCoord * RAY_CAST_DISTANCE, lookVec.zCoord * RAY_CAST_DISTANCE);
 
-        // Use the world's rayTraceBlocks to find what block we're looking at
-        MovingObjectPosition rayTraceResult = mc.theWorld.rayTraceBlocks(eyePos, reachVec, false, false, false);
+        // Use the world's rayTraceBlocks to find what block we're looking at,
+        // but keep stepping past non-solid "fake" blocks such as cobwebs and pressure plates.
+        MovingObjectPosition rayTraceResult = findFirstValidTeleportTarget(eyePos, reachVec, lookVec);
 
         if (rayTraceResult == null || rayTraceResult.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             if (color1 != null) {
                 mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
-                    color1 + prefix + color2 + "No block in sight!" + reset));
+                    color1 + prefix + color2 + "No valid block in sight!" + reset));
             }
             return;
         }
@@ -272,6 +275,40 @@ public class TopTeleportManager {
         }
 
         return new double[]{x, standY, z};
+    }
+
+    private MovingObjectPosition findFirstValidTeleportTarget(Vec3 eyePos, Vec3 reachVec, Vec3 lookVec) {
+        Vec3 searchStart = eyePos;
+        Vec3 stepDirection = lookVec.normalize();
+
+        for (int attempts = 0; attempts < IGNORE_RAY_MAX_STEPS; attempts++) {
+            MovingObjectPosition rayTraceResult = mc.theWorld.rayTraceBlocks(searchStart, reachVec, false, false, false);
+            if (rayTraceResult == null || rayTraceResult.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK || rayTraceResult.hitVec == null) {
+                return rayTraceResult;
+            }
+
+            net.minecraft.util.BlockPos pos = rayTraceResult.getBlockPos();
+            net.minecraft.block.state.IBlockState blockState = mc.theWorld.getBlockState(pos);
+            net.minecraft.block.Block block = blockState.getBlock();
+
+            if (!isIgnoredRayHitBlock(block)) {
+                return rayTraceResult;
+            }
+
+            searchStart = rayTraceResult.hitVec.addVector(
+                stepDirection.xCoord * IGNORE_RAY_ADVANCE_STEP,
+                stepDirection.yCoord * IGNORE_RAY_ADVANCE_STEP,
+                stepDirection.zCoord * IGNORE_RAY_ADVANCE_STEP
+            );
+        }
+
+        return null;
+    }
+
+    private boolean isIgnoredRayHitBlock(net.minecraft.block.Block block) {
+        return block instanceof net.minecraft.block.BlockWeb
+            || block instanceof net.minecraft.block.BlockVine
+            || block instanceof net.minecraft.block.BlockBasePressurePlate;
     }
 
     private double clamp(double value, double min, double max) {

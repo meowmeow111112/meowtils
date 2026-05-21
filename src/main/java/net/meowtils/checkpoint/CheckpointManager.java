@@ -13,7 +13,6 @@ public class CheckpointManager {
     private Vec3 checkpointPos = null;
     private float checkpointYaw = 0, checkpointPitch = 0;
     private boolean hotbarCPActive = true;
-    private boolean rightMouseWasDown = false;
 
     private final KeyBinding cpSetKey = new KeyBinding("Set CP", Keyboard.KEY_K, "Meowtils");
     private final KeyBinding cpReturnKey = new KeyBinding("Return to CP", Keyboard.KEY_L, "Meowtils");
@@ -42,6 +41,33 @@ public class CheckpointManager {
         }
     }
 
+    public boolean onMouseInput(String color1, String color2, String reset, String prefix, int cpReturnSlot, int cpSetSlot, boolean parkourBlocked) {
+        if (mc.thePlayer == null || mc.theWorld == null) {
+            return false;
+        }
+
+        if (!hotbarCPActive || parkourBlocked) {
+            return false;
+        }
+
+        if (!org.lwjgl.input.Mouse.getEventButtonState() || org.lwjgl.input.Mouse.getEventButton() != 1) {
+            return false;
+        }
+
+        int slot = mc.thePlayer.inventory.currentItem;
+        if (slot == cpReturnSlot) {
+            returnToCP(color1, color2, reset, prefix);
+            return true;
+        }
+
+        if (slot == cpSetSlot) {
+            setCP(color1, color2, reset, prefix);
+            return true;
+        }
+
+        return false;
+    }
+
     public boolean isHotbarCPActive() {
         return hotbarCPActive;
     }
@@ -55,25 +81,6 @@ public class CheckpointManager {
         if (mc.thePlayer != null && color1 != null) {
             mc.thePlayer.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Hotbar CP System is now " + (hotbarCPActive ? "ON" : "OFF") + "." + reset));
         }
-    }
-
-    public void onClientTick(String color1, String color2, String reset, String prefix, int cpReturnSlot, int cpSetSlot) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-
-        if (!hotbarCPActive) return;
-
-        int slot = mc.thePlayer.inventory.currentItem; // 0-8
-        boolean rightMouseDown = org.lwjgl.input.Mouse.isButtonDown(1);
-
-        if (rightMouseDown && !rightMouseWasDown) {
-            if (slot == cpReturnSlot) { // slot for return to CP
-                returnToCP(color1, color2, reset, prefix);
-            } else if (slot == cpSetSlot) { // slot for set CP
-                setCP(color1, color2, reset, prefix);
-            }
-        }
-
-        rightMouseWasDown = rightMouseDown;
     }
 
     private void setCP(String color1, String color2, String reset, String prefix) {
