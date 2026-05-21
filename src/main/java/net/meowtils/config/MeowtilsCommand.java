@@ -125,7 +125,6 @@ public class MeowtilsCommand implements ICommand {
         }
 
         configManager.openConfigGui();
-        sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Opened OneConfig settings." + reset));
         return true;
     }
 

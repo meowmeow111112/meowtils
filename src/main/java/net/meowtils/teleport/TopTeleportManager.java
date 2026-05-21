@@ -14,11 +14,11 @@ public class TopTeleportManager {
     private final TeleportCallback teleportCallback;
     private static final double RAY_CAST_DISTANCE = 256.0;
     private static final double COLLISION_EPSILON = 1.0E-4;
-    private static final double TELEPORT_COORD_SCALE = 1000000.0;
     private static final int FALLBACK_CANCEL = 0;
     private static final int FALLBACK_ASCEND = 1;
     private static final int FALLBACK_CENTER = 2;
     private static final int FALLBACK_EDGE = 3;
+    private static final double EDGE_CLIP_EPSILON = 1.0E-10;
 
     public TopTeleportManager(TeleportCallback callback) {
         this.teleportCallback = callback;
@@ -93,10 +93,6 @@ public class TopTeleportManager {
             z = pos.getZ() + 0.5;
         }
 
-        x = normalizeTeleportCoordinate(x);
-        y = normalizeTeleportCoordinate(y);
-        z = normalizeTeleportCoordinate(z);
-
         // Register suppression state before sending the teleport command.
         teleportCallback.suppressNextTeleportMessage();
 
@@ -106,15 +102,13 @@ public class TopTeleportManager {
 
     private double[] resolveSafetyFallback(net.minecraft.util.BlockPos pos, double preferredX, double preferredZ, int fallbackMode, String color1, String color2, String reset, String prefix) {
         if (fallbackMode == FALLBACK_ASCEND) {
+            sendFallbackMessage(color1, color2, reset, prefix, "No safe position found near the target block, ascending.");
             double[] ascended = findSafeTeleportAbove(pos, preferredX, preferredZ);
             if (ascended != null) {
                 return ascended;
             }
 
-            if (color1 != null) {
-                mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
-                    color1 + prefix + color2 + "No safe position found above the target block!" + reset));
-            }
+            sendFallbackMessage(color1, color2, reset, prefix, "No safe position found above the target block, teleport cancelled.");
             return null;
         }
 
@@ -132,17 +126,16 @@ public class TopTeleportManager {
         double standY = getStandY(pos, block, boundingBox);
 
         if (fallbackMode == FALLBACK_CENTER) {
+            sendFallbackMessage(color1, color2, reset, prefix, "No safe position found near the target block, teleporting to center.");
             return new double[]{pos.getX() + 0.5, standY, pos.getZ() + 0.5};
         }
 
         if (fallbackMode == FALLBACK_EDGE) {
+            sendFallbackMessage(color1, color2, reset, prefix, "No safe position found near the target block, teleporting to edge.");
             return getEdgeFallbackPosition(pos, boundingBox, standY, preferredX, preferredZ);
         }
 
-        if (color1 != null) {
-            mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
-                color1 + prefix + color2 + "No safe position found near the target block!" + reset));
-        }
+        sendFallbackMessage(color1, color2, reset, prefix, "No safe position found near the target block, teleport cancelled.");
         return null;
     }
 
@@ -256,6 +249,7 @@ public class TopTeleportManager {
         double maxX = boundingBox.maxX;
         double minZ = boundingBox.minZ;
         double maxZ = boundingBox.maxZ;
+        double playerHalfWidth = mc.thePlayer.width / 2.0;
 
         double x = clamp(preferredX, minX, maxX);
         double z = clamp(preferredZ, minZ, maxZ);
@@ -268,13 +262,13 @@ public class TopTeleportManager {
         double nearestEdgeDistance = Math.min(Math.min(distanceToMinX, distanceToMaxX), Math.min(distanceToMinZ, distanceToMaxZ));
 
         if (nearestEdgeDistance == distanceToMinX) {
-            x = minX;
+            x = minX - (playerHalfWidth - EDGE_CLIP_EPSILON);
         } else if (nearestEdgeDistance == distanceToMaxX) {
-            x = maxX;
+            x = maxX + (playerHalfWidth - EDGE_CLIP_EPSILON);
         } else if (nearestEdgeDistance == distanceToMinZ) {
-            z = minZ;
+            z = minZ - (playerHalfWidth - EDGE_CLIP_EPSILON);
         } else {
-            z = maxZ;
+            z = maxZ + (playerHalfWidth - EDGE_CLIP_EPSILON);
         }
 
         return new double[]{x, standY, z};
@@ -284,6 +278,14 @@ public class TopTeleportManager {
         return Math.max(min, Math.min(max, value));
     }
 
+    private void sendFallbackMessage(String color1, String color2, String reset, String prefix, String message) {
+        if (color1 == null) {
+            return;
+        }
+
+        mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(color1 + prefix + color2 + message + reset));
+    }
+
     private boolean isPlayerBoxClear(net.minecraft.util.BlockPos pos, net.minecraft.util.AxisAlignedBB playerBox) {
         net.minecraft.util.AxisAlignedBB expandedPlayerBox = playerBox.expand(COLLISION_EPSILON, 0.0, COLLISION_EPSILON);
 
@@ -291,10 +293,6 @@ public class TopTeleportManager {
         // contribute all of their collision boxes, not just one simplified AABB.
         java.util.List<?> collisions = mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, expandedPlayerBox);
         return collisions.isEmpty();
-    }
-
-    private double normalizeTeleportCoordinate(double coordinate) {
-        return Math.round(coordinate * TELEPORT_COORD_SCALE) / TELEPORT_COORD_SCALE;
     }
 
     private java.util.List<net.minecraft.util.AxisAlignedBB> getCollisionBoxes(net.minecraft.util.BlockPos pos, net.minecraft.block.Block block, net.minecraft.block.state.IBlockState blockState) {
