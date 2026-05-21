@@ -19,7 +19,7 @@ public class MeowtilsOneConfig extends Config {
             "Yellow", "White"
         }
     )
-    public static int color1Index = 10;
+    public int color1Index = 10;
 
     @Dropdown(
         name = "Chat Color 2",
@@ -30,19 +30,19 @@ public class MeowtilsOneConfig extends Config {
             "Yellow", "White"
         }
     )
-    public static int color2Index = 11;
+    public int color2Index = 11;
 
     @Text(name = "Chat Prefix", category = "Chat")
-    public static String prefixText = "meow";
+    public String prefixText = "meow";
 
     @Number(name = "Checkpoint Return Slot", category = "Checkpoint", min = 1, max = 9, step = 1)
-    public static int cpReturnSlot = 1;
+    public int cpReturnSlot = 1;
 
     @Number(name = "Checkpoint Set Slot", category = "Checkpoint", min = 1, max = 9, step = 1)
-    public static int cpSetSlot = 3;
+    public int cpSetSlot = 3;
 
     @Switch(name = "Top Teleport Safety Checks", category = "Teleport")
-    public static boolean topTeleportSafetyChecks = true;
+    public boolean topTeleportSafetyChecks = true;
 
     @Dropdown(
         name = "Unsafe Teleport Fallback",
@@ -54,10 +54,10 @@ public class MeowtilsOneConfig extends Config {
             "Teleport to edge"
         }
     )
-    public static int topTeleportSafetyFallbackMode = 0;
+    public int topTeleportSafetyFallbackMode = 0;
 
     @Slider(name = "Forward Teleport Distance", category = "Teleport", min = 1.0f, max = 256.0f, step = 1)
-    public static float tpForwardDistance = 8.0f;
+    public float tpForwardDistance = 8.0f;
 
     public MeowtilsOneConfig() {
         super(new Mod("Meowtils", ModType.UTIL_QOL), "meowtils.json");
