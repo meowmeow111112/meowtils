@@ -106,16 +106,16 @@ public class MeowtilsCommand implements ICommand {
             return false;
         }
 
-        sender.addChatMessage(new ChatComponentText(color1 + prefix + "Available commands:" + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "config:" + color2 + "Open the OneConfig settings GUI." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "prefix:" + color2 + "Set the chat prefix." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "crs:" + color2 + "Set the hotbar slot for checkpoint return." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "css:" + color2 + "Set the hotbar slot for checkpoint set." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "safetp:" + color2 + "Toggle safety checks for TP on top." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "tpdist:" + color2 + "Set forward teleport distance." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "color1:" + color2 + "Set the first chat color." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "color2:" + color2 + "Set the second chat color." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + "list:" + color2 + "Show available colors." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + prefix + " Available commands:" + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " config:" + color2 + " Open the OneConfig settings GUI." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " prefix:" + color2 + " Set the chat prefix." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " crs:" + color2 + " Set the hotbar slot for checkpoint return." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " css:" + color2 + " Set the hotbar slot for checkpoint set." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " safetp:" + color2 + " Toggle safety checks for TP on top." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " tpdist:" + color2 + " Set forward teleport distance." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " color1:" + color2 + " Set the first chat color." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " color2:" + color2 + " Set the second chat color." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " list:" + color2 + " Show available colors." + reset));
         return true;
     }
 
