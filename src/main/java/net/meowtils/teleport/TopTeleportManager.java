@@ -31,11 +31,7 @@ public class TopTeleportManager {
     public void onKeyInput(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled, int fallbackMode, boolean parkourBlocked) {
         if (mc.thePlayer == null) return;
 
-        if (parkourBlocked) {
-            return;
-        }
-
-        if (topTeleportKey.isPressed()) {
+        if (topTeleportKey.isPressed() && !parkourBlocked) {
             performTopTeleport(color1, color2, reset, prefix, safetyChecksEnabled, fallbackMode);
         }
     }
