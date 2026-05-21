@@ -11,6 +11,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.meowtils.checkpoint.CheckpointManager;
 import net.meowtils.config.ConfigManager;
 import net.meowtils.config.MeowtilsCommand;
+import net.meowtils.parkour.ParkourManager;
 import net.meowtils.teleport.TeleportManager;
 import net.meowtils.teleport.TPCommand;
 import net.meowtils.teleport.TPFCommand;
@@ -24,6 +25,7 @@ public class Meowtils {
     private final Minecraft mc = Minecraft.getMinecraft();
 
     private final ConfigManager configManager = new ConfigManager();
+    private final ParkourManager parkourManager = new ParkourManager();
     private final TeleportManager teleportManager = new TeleportManager();
     private final CheckpointManager checkpointManager = new CheckpointManager(new CheckpointManager.TeleportCallback() {
         @Override
@@ -50,6 +52,9 @@ public class Meowtils {
         }
     });
 
+    private boolean parkourHotbarWasEnabledBeforeBlock;
+    private boolean lastParkourBlocked;
+
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         checkpointManager.register();
@@ -68,6 +73,8 @@ public class Meowtils {
 
     @SubscribeEvent
     public void onClientChatReceived(net.minecraftforge.client.event.ClientChatReceivedEvent event) {
+        parkourManager.onClientChatReceived(event);
+
         if (!teleportManager.shouldSuppressNextMessage()) return;
 
         String plain = event.message.getUnformattedText();
@@ -81,27 +88,38 @@ public class Meowtils {
     @SubscribeEvent
     public void onKeyInput(KeyInputEvent event) {
         if (mc.thePlayer == null) return;
-        checkpointManager.onKeyInput(configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
+
+        boolean parkourBlocked = parkourManager.shouldBlockTeleportHotkeys();
+        checkpointManager.onKeyInput(
+            configManager.getColor1(),
+            configManager.getColor2(),
+            configManager.getReset(),
+            configManager.getPrefix(),
+            parkourBlocked
+        );
         topTeleportManager.onKeyInput(
             configManager.getColor1(),
             configManager.getColor2(),
             configManager.getReset(),
             configManager.getPrefix(),
             configManager.isTopTeleportSafetyChecksEnabled(),
-            configManager.getTopTeleportSafetyFallbackMode()
+            configManager.getTopTeleportSafetyFallbackMode(),
+            parkourBlocked
         );
         forwardTeleportManager.onKeyInput(
             configManager.getColor1(),
             configManager.getColor2(),
             configManager.getReset(),
             configManager.getPrefix(),
-            configManager.getTpForwardDistance()
+            configManager.getTpForwardDistance(),
+            parkourBlocked
         );
         throughTeleportManager.onKeyInput(
             configManager.getColor1(),
             configManager.getColor2(),
             configManager.getReset(),
-            configManager.getPrefix()
+            configManager.getPrefix(),
+            parkourBlocked
         );
     }
 
@@ -110,7 +128,27 @@ public class Meowtils {
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
+        parkourManager.onClientTick();
+        updateParkourHotbarState();
         teleportManager.onClientTick();
         checkpointManager.onClientTick(configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix(), configManager.getCpReturnSlot(), configManager.getCpSetSlot());
+    }
+
+    private void updateParkourHotbarState() {
+        boolean parkourBlocked = parkourManager.shouldBlockTeleportHotkeys();
+
+        if (parkourBlocked && !lastParkourBlocked) {
+            parkourHotbarWasEnabledBeforeBlock = checkpointManager.isHotbarCPActive();
+            if (parkourHotbarWasEnabledBeforeBlock) {
+                checkpointManager.setHotbarCPActive(false, configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
+            }
+        } else if (!parkourBlocked && lastParkourBlocked) {
+            if (parkourHotbarWasEnabledBeforeBlock) {
+                checkpointManager.setHotbarCPActive(true, configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
+            }
+            parkourHotbarWasEnabledBeforeBlock = false;
+        }
+
+        lastParkourBlocked = parkourBlocked;
     }
 }

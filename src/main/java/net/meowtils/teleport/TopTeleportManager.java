@@ -28,8 +28,12 @@ public class TopTeleportManager {
         ClientRegistry.registerKeyBinding(topTeleportKey);
     }
 
-    public void onKeyInput(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled, int fallbackMode) {
+    public void onKeyInput(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled, int fallbackMode, boolean parkourBlocked) {
         if (mc.thePlayer == null) return;
+
+        if (parkourBlocked) {
+            return;
+        }
 
         if (topTeleportKey.isPressed()) {
             performTopTeleport(color1, color2, reset, prefix, safetyChecksEnabled, fallbackMode);

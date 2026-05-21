@@ -33,8 +33,12 @@ public class ThroughTeleportManager {
         ClientRegistry.registerKeyBinding(throughTeleportKey);
     }
 
-    public void onKeyInput(String color1, String color2, String reset, String prefix) {
+    public void onKeyInput(String color1, String color2, String reset, String prefix, boolean parkourBlocked) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
+
+        if (parkourBlocked) {
+            return;
+        }
 
         if (throughTeleportKey.isPressed()) {
             performThroughTeleport(color1, color2, reset, prefix);
