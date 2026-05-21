@@ -10,6 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigManager {
+    private static final String[] COLOR_OPTIONS = new String[] {
+        "black", "dark_blue", "dark_green", "dark_aqua", "dark_red", "dark_purple",
+        "gold", "gray", "dark_gray", "blue", "green", "aqua", "red", "light_purple",
+        "yellow", "white"
+    };
+
     private String color1 = EnumChatFormatting.GREEN.toString();
     private String color2 = EnumChatFormatting.AQUA.toString();
     private String reset = EnumChatFormatting.RESET.toString();
@@ -21,6 +27,8 @@ public class ConfigManager {
     private double tpForwardDistance = 8.0;
 
     private final Map<String, String> COLOR_MAP = new HashMap<String, String>();
+    private final Map<String, Integer> COLOR_INDEX_MAP = new HashMap<String, Integer>();
+    private final MeowtilsOneConfig oneConfig;
     private final Path configFile;
 
     public ConfigManager() {
@@ -29,7 +37,9 @@ public class ConfigManager {
         configFile = Paths.get(mcPath, "meowtils.cfg");
         
         initializeColorMap();
+        oneConfig = new MeowtilsOneConfig();
         loadConfig();
+        syncOneConfigFromState();
     }
 
     private void initializeColorMap() {
@@ -49,27 +59,34 @@ public class ConfigManager {
         COLOR_MAP.put("light_purple", EnumChatFormatting.LIGHT_PURPLE.toString());
         COLOR_MAP.put("yellow", EnumChatFormatting.YELLOW.toString());
         COLOR_MAP.put("white", EnumChatFormatting.WHITE.toString());
+
+        for (int i = 0; i < COLOR_OPTIONS.length; i++) {
+            COLOR_INDEX_MAP.put(COLOR_OPTIONS[i], i);
+        }
     }
 
-    public String getColor1() { return color1; }
-    public String getColor2() { return color2; }
+    public String getColor1() { syncFromOneConfig(); return color1; }
+    public String getColor2() { syncFromOneConfig(); return color2; }
     public String getReset() { return reset; }
-    public String getPrefix() { return prefix; }
-    public String getPrefixText() { return prefixText; }
-    public int getCpReturnSlot() { return cpReturnSlot; }
-    public int getCpSetSlot() { return cpSetSlot; }
-    public boolean isTopTeleportSafetyChecksEnabled() { return topTeleportSafetyChecks; }
-    public double getTpForwardDistance() { return tpForwardDistance; }
+    public String getPrefix() { syncFromOneConfig(); return prefix; }
+    public String getPrefixText() { syncFromOneConfig(); return prefixText; }
+    public int getCpReturnSlot() { syncFromOneConfig(); return cpReturnSlot; }
+    public int getCpSetSlot() { syncFromOneConfig(); return cpSetSlot; }
+    public boolean isTopTeleportSafetyChecksEnabled() { syncFromOneConfig(); return topTeleportSafetyChecks; }
+    public double getTpForwardDistance() { syncFromOneConfig(); return tpForwardDistance; }
     public Map<String, String> getColorMap() { return COLOR_MAP; }
+    public void openConfigGui() { oneConfig.openGui(); }
 
     public void toggleTopTeleportSafetyChecks() {
         topTeleportSafetyChecks = !topTeleportSafetyChecks;
+        MeowtilsOneConfig.topTeleportSafetyChecks = topTeleportSafetyChecks;
         saveConfig();
     }
 
     public void setColor1(String colorName) {
         if (COLOR_MAP.containsKey(colorName)) {
             color1 = COLOR_MAP.get(colorName);
+            MeowtilsOneConfig.color1Index = getColorIndex(colorName);
             saveConfig();
         }
     }
@@ -77,6 +94,7 @@ public class ConfigManager {
     public void setColor2(String colorName) {
         if (COLOR_MAP.containsKey(colorName)) {
             color2 = COLOR_MAP.get(colorName);
+            MeowtilsOneConfig.color2Index = getColorIndex(colorName);
             saveConfig();
         }
     }
@@ -84,12 +102,14 @@ public class ConfigManager {
     public void setPrefixText(String text) {
         prefixText = text;
         prefix = "[" + prefixText + "] ";
+        MeowtilsOneConfig.prefixText = prefixText;
         saveConfig();
     }
 
     public void setCpReturnSlot(int slot) {
         if (slot >= 0 && slot <= 8) {
             cpReturnSlot = slot;
+            MeowtilsOneConfig.cpReturnSlot = cpReturnSlot + 1;
             saveConfig();
         }
     }
@@ -97,19 +117,92 @@ public class ConfigManager {
     public void setCpSetSlot(int slot) {
         if (slot >= 0 && slot <= 8) {
             cpSetSlot = slot;
+            MeowtilsOneConfig.cpSetSlot = cpSetSlot + 1;
             saveConfig();
         }
     }
 
     public void setTopTeleportSafetyChecks(boolean enabled) {
         topTeleportSafetyChecks = enabled;
+        MeowtilsOneConfig.topTeleportSafetyChecks = topTeleportSafetyChecks;
         saveConfig();
     }
 
     public void setTpForwardDistance(double distance) {
         if (distance > 0.0 || distance == -1.0) {
             tpForwardDistance = distance;
+            MeowtilsOneConfig.tpForwardDistance = (float) tpForwardDistance;
             saveConfig();
+        }
+    }
+
+    private int getColorIndex(String colorName) {
+        Integer index = COLOR_INDEX_MAP.get(colorName);
+        return index == null ? COLOR_INDEX_MAP.get("green") : index;
+    }
+
+    private String getColorNameByIndex(int index) {
+        if (index < 0 || index >= COLOR_OPTIONS.length) {
+            return "green";
+        }
+
+        return COLOR_OPTIONS[index];
+    }
+
+    private String getColorNameFromValue(String colorValue) {
+        for (Map.Entry<String, String> entry : COLOR_MAP.entrySet()) {
+            if (entry.getValue().equals(colorValue)) {
+                return entry.getKey();
+            }
+        }
+
+        return "green";
+    }
+
+    private void syncOneConfigFromState() {
+        MeowtilsOneConfig.color1Index = getColorIndex(getColorNameFromValue(color1));
+        MeowtilsOneConfig.color2Index = getColorIndex(getColorNameFromValue(color2));
+        MeowtilsOneConfig.prefixText = prefixText;
+        MeowtilsOneConfig.cpReturnSlot = cpReturnSlot + 1;
+        MeowtilsOneConfig.cpSetSlot = cpSetSlot + 1;
+        MeowtilsOneConfig.topTeleportSafetyChecks = topTeleportSafetyChecks;
+        MeowtilsOneConfig.tpForwardDistance = (float) tpForwardDistance;
+    }
+
+    private void syncFromOneConfig() {
+        String selectedColor1 = getColorNameByIndex(MeowtilsOneConfig.color1Index);
+        String selectedColor2 = getColorNameByIndex(MeowtilsOneConfig.color2Index);
+
+        if (!color1.equals(COLOR_MAP.get(selectedColor1))) {
+            color1 = COLOR_MAP.get(selectedColor1);
+        }
+
+        if (!color2.equals(COLOR_MAP.get(selectedColor2))) {
+            color2 = COLOR_MAP.get(selectedColor2);
+        }
+
+        if (!prefixText.equals(MeowtilsOneConfig.prefixText)) {
+            prefixText = MeowtilsOneConfig.prefixText;
+            prefix = "[" + prefixText + "] ";
+        }
+
+        int oneConfigReturnSlot = MeowtilsOneConfig.cpReturnSlot - 1;
+        int oneConfigSetSlot = MeowtilsOneConfig.cpSetSlot - 1;
+
+        if (oneConfigReturnSlot >= 0 && oneConfigReturnSlot <= 8 && cpReturnSlot != oneConfigReturnSlot) {
+            cpReturnSlot = oneConfigReturnSlot;
+        }
+
+        if (oneConfigSetSlot >= 0 && oneConfigSetSlot <= 8 && cpSetSlot != oneConfigSetSlot) {
+            cpSetSlot = oneConfigSetSlot;
+        }
+
+        if (topTeleportSafetyChecks != MeowtilsOneConfig.topTeleportSafetyChecks) {
+            topTeleportSafetyChecks = MeowtilsOneConfig.topTeleportSafetyChecks;
+        }
+
+        if (Math.abs(tpForwardDistance - MeowtilsOneConfig.tpForwardDistance) > 1.0E-6) {
+            tpForwardDistance = MeowtilsOneConfig.tpForwardDistance;
         }
     }
 
