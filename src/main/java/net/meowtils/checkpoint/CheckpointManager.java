@@ -31,13 +31,32 @@ public class CheckpointManager {
         ClientRegistry.registerKeyBinding(hotbarToggleKey);
     }
 
-    public void onKeyInput(String color1, String color2, String reset, String prefix) {
+    public void onKeyInput(String color1, String color2, String reset, String prefix, boolean parkourBlocked) {
         if (mc.thePlayer == null) return;
+
+        if (parkourBlocked) {
+            return;
+        }
 
         if (cpSetKey.isPressed()) setCP(color1, color2, reset, prefix);
         if (cpReturnKey.isPressed()) returnToCP(color1, color2, reset, prefix);
         if (hotbarToggleKey.isPressed()) {
             hotbarCPActive = !hotbarCPActive;
+            mc.thePlayer.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Hotbar CP System is now " + (hotbarCPActive ? "ON" : "OFF") + "." + reset));
+        }
+    }
+
+    public boolean isHotbarCPActive() {
+        return hotbarCPActive;
+    }
+
+    public void setHotbarCPActive(boolean active, String color1, String color2, String reset, String prefix) {
+        if (hotbarCPActive == active) {
+            return;
+        }
+
+        hotbarCPActive = active;
+        if (mc.thePlayer != null && color1 != null) {
             mc.thePlayer.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Hotbar CP System is now " + (hotbarCPActive ? "ON" : "OFF") + "." + reset));
         }
     }

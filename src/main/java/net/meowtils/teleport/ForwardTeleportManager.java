@@ -22,8 +22,12 @@ public class ForwardTeleportManager {
         ClientRegistry.registerKeyBinding(forwardTeleportKey);
     }
 
-    public void onKeyInput(String color1, String color2, String reset, String prefix, double configuredDistance) {
+    public void onKeyInput(String color1, String color2, String reset, String prefix, double configuredDistance, boolean parkourBlocked) {
         if (mc.thePlayer == null) return;
+
+        if (parkourBlocked) {
+            return;
+        }
 
         if (forwardTeleportKey.isPressed()) {
             performForwardTeleport(color1, color2, reset, prefix, configuredDistance);
