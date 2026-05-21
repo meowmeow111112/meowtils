@@ -52,6 +52,10 @@ public class MeowtilsCommand implements ICommand {
             return;
         }
 
+        if (handleOpenConfigCommand(sender, command, color1, color2, reset, prefix)) {
+            return;
+        }
+
         if (handlePrefixCommand(sender, args, command, color1, color2, reset, prefix)) {
             return;
         }
@@ -103,6 +107,7 @@ public class MeowtilsCommand implements ICommand {
         }
 
         sender.addChatMessage(new ChatComponentText(color1 + prefix + "Available commands:" + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + "config:" + color2 + "Open the OneConfig settings GUI." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + "prefix:" + color2 + "Set the chat prefix." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + "crs:" + color2 + "Set the hotbar slot for checkpoint return." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + "css:" + color2 + "Set the hotbar slot for checkpoint set." + reset));
@@ -111,6 +116,16 @@ public class MeowtilsCommand implements ICommand {
         sender.addChatMessage(new ChatComponentText(color1 + "color1:" + color2 + "Set the first chat color." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + "color2:" + color2 + "Set the second chat color." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + "list:" + color2 + "Show available colors." + reset));
+        return true;
+    }
+
+    private boolean handleOpenConfigCommand(ICommandSender sender, String command, String color1, String color2, String reset, String prefix) {
+        if (!command.equals("config") && !command.equals("settings") && !command.equals("gui")) {
+            return false;
+        }
+
+        configManager.openConfigGui();
+        sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Opened OneConfig settings." + reset));
         return true;
     }
 
