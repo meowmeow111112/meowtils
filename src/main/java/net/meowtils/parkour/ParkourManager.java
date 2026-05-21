@@ -47,7 +47,7 @@ public class ParkourManager {
         }
 
         if (pendingHouseJoinRefresh || currentHouseName == null) {
-            String detectedHouseName = resolveHouseName();
+            String detectedHouseName = resolveHouseName(pendingHouseJoinRefresh);
             if (detectedHouseName != null) {
                 pendingHouseJoinRefresh = false;
                 if (!detectedHouseName.equals(currentHouseName)) {
@@ -94,11 +94,12 @@ public class ParkourManager {
     }
 
     private void setCurrentHouseParkourState(boolean active) {
-        String houseName = resolveHouseName();
+        String houseName = resolveHouseName(pendingHouseJoinRefresh);
         if (houseName == null) {
             return;
         }
 
+        boolean previousState = getStoredHouseState(houseName);
         currentHouseName = houseName;
         currentHouseParkourActive = active;
         houseParkourStates.put(houseName, Boolean.valueOf(active));
@@ -151,19 +152,19 @@ public class ParkourManager {
         }
     }
 
-    private String resolveHouseName() {
+    private String resolveHouseName(boolean requireFreshFooter) {
         if (mc.ingameGUI == null || mc.ingameGUI.getTabList() == null) {
-            return currentHouseName;
+            return requireFreshFooter ? null : currentHouseName;
         }
 
         GuiPlayerTabOverlay tabOverlay = mc.ingameGUI.getTabList();
-        String footerText = readComponentText(tabOverlay, "field_175256_i", "footer");
+        String footerText = readComponentText(tabOverlay, "field_175255_h", "footer");
         String candidate = parseHouseNameFromFooter(footerText);
         if (candidate != null) {
             return candidate;
         }
 
-        return currentHouseName;
+        return requireFreshFooter ? null : currentHouseName;
     }
 
     private String readComponentText(Object target, String firstFieldName, String secondFieldName) {

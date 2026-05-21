@@ -25,11 +25,7 @@ public class ForwardTeleportManager {
     public void onKeyInput(String color1, String color2, String reset, String prefix, double configuredDistance, boolean parkourBlocked) {
         if (mc.thePlayer == null) return;
 
-        if (parkourBlocked) {
-            return;
-        }
-
-        if (forwardTeleportKey.isPressed()) {
+        if (forwardTeleportKey.isPressed() && !parkourBlocked) {
             performForwardTeleport(color1, color2, reset, prefix, configuredDistance);
         }
     }

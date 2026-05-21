@@ -54,6 +54,7 @@ public class Meowtils {
 
     private boolean parkourHotbarWasEnabledBeforeBlock;
     private boolean lastParkourBlocked;
+    private int parkourHotbarRestoreCooldown;
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
@@ -139,14 +140,22 @@ public class Meowtils {
 
         if (parkourBlocked && !lastParkourBlocked) {
             parkourHotbarWasEnabledBeforeBlock = checkpointManager.isHotbarCPActive();
+            parkourHotbarRestoreCooldown = 0;
             if (parkourHotbarWasEnabledBeforeBlock) {
                 checkpointManager.setHotbarCPActive(false, configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
             }
         } else if (!parkourBlocked && lastParkourBlocked) {
-            if (parkourHotbarWasEnabledBeforeBlock) {
-                checkpointManager.setHotbarCPActive(true, configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
+            parkourHotbarRestoreCooldown = parkourHotbarWasEnabledBeforeBlock ? 2 : 0;
+        } else if (!parkourBlocked && parkourHotbarRestoreCooldown > 0) {
+            parkourHotbarRestoreCooldown--;
+            if (parkourHotbarRestoreCooldown == 0) {
+                if (parkourHotbarWasEnabledBeforeBlock) {
+                    checkpointManager.setHotbarCPActive(true, configManager.getColor1(), configManager.getColor2(), configManager.getReset(), configManager.getPrefix());
+                }
+                parkourHotbarWasEnabledBeforeBlock = false;
             }
-            parkourHotbarWasEnabledBeforeBlock = false;
+        } else if (parkourBlocked) {
+            parkourHotbarRestoreCooldown = 0;
         }
 
         lastParkourBlocked = parkourBlocked;
