@@ -14,8 +14,8 @@ public class MeowtilsOneConfig extends Config {
         name = "Chat Color 1",
         category = "Chat",
         options = {
-            "Black", "Dark blue", "Dark green", "Dark aqua", "Dark red", "Dark purple",
-            "Gold", "Gray", "Dark gray", "Blue", "Green", "Aqua", "Red", "Light purple",
+            "Black", "Dark Blue", "Dark Green", "Dark Aqua", "Dark Red", "Dark Purple",
+            "Gold", "Gray", "Dark Gray", "Blue", "Green", "Aqua", "Red", "Light Purple",
             "Yellow", "White"
         }
     )
@@ -25,8 +25,8 @@ public class MeowtilsOneConfig extends Config {
         name = "Chat Color 2",
         category = "Chat",
         options = {
-            "Black", "Dark blue", "Dark green", "Dark aqua", "Dark red", "Dark purple",
-            "Gold", "Gray", "Dark gray", "Blue", "Green", "Aqua", "Red", "Light purple",
+            "Black", "Dark Blue", "Dark Green", "Dark Aqua", "Dark Red", "Dark Purple",
+            "Gold", "Gray", "Dark Gray", "Blue", "Green", "Aqua", "Red", "Light Purple",
             "Yellow", "White"
         }
     )
