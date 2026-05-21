@@ -87,7 +87,8 @@ public class Meowtils {
             configManager.getColor2(),
             configManager.getReset(),
             configManager.getPrefix(),
-            configManager.isTopTeleportSafetyChecksEnabled()
+            configManager.isTopTeleportSafetyChecksEnabled(),
+            configManager.getTopTeleportSafetyFallbackMode()
         );
         forwardTeleportManager.onKeyInput(
             configManager.getColor1(),

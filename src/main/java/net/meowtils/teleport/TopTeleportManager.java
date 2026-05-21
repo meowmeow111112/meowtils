@@ -15,6 +15,10 @@ public class TopTeleportManager {
     private static final double RAY_CAST_DISTANCE = 256.0;
     private static final double COLLISION_EPSILON = 1.0E-4;
     private static final double TELEPORT_COORD_SCALE = 1000000.0;
+    private static final int FALLBACK_CANCEL = 0;
+    private static final int FALLBACK_ASCEND = 1;
+    private static final int FALLBACK_CENTER = 2;
+    private static final int FALLBACK_EDGE = 3;
 
     public TopTeleportManager(TeleportCallback callback) {
         this.teleportCallback = callback;
@@ -24,15 +28,15 @@ public class TopTeleportManager {
         ClientRegistry.registerKeyBinding(topTeleportKey);
     }
 
-    public void onKeyInput(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled) {
+    public void onKeyInput(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled, int fallbackMode) {
         if (mc.thePlayer == null) return;
 
         if (topTeleportKey.isPressed()) {
-            performTopTeleport(color1, color2, reset, prefix, safetyChecksEnabled);
+            performTopTeleport(color1, color2, reset, prefix, safetyChecksEnabled, fallbackMode);
         }
     }
 
-    private void performTopTeleport(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled) {
+    private void performTopTeleport(String color1, String color2, String reset, String prefix, boolean safetyChecksEnabled, int fallbackMode) {
         // Cast a ray from the player's eyes along their look direction
         Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0F);
         Vec3 lookVec = mc.thePlayer.getLook(1.0F);
@@ -65,17 +69,18 @@ public class TopTeleportManager {
             double aimX = rayTraceResult.hitVec != null ? rayTraceResult.hitVec.xCoord : (boundingBox.minX + boundingBox.maxX) / 2.0;
             double aimZ = rayTraceResult.hitVec != null ? rayTraceResult.hitVec.zCoord : (boundingBox.minZ + boundingBox.maxZ) / 2.0;
             if (safetyChecksEnabled) {
-                double[] standablePos = findSafeStandablePosition(pos, block, blockState, boundingBox, standY, aimX, aimZ);
-                if (standablePos == null) {
-                    if (color1 != null) {
-                        mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
-                            color1 + prefix + color2 + "No safe position found near the target block!" + reset));
-                    }
+                double[] teleportPos = findSafeTeleportPosition(pos, block, blockState, boundingBox, aimX, aimZ);
+                if (teleportPos == null) {
+                    teleportPos = resolveSafetyFallback(pos, aimX, aimZ, fallbackMode, color1, color2, reset, prefix);
+                }
+
+                if (teleportPos == null) {
                     return;
                 }
-                x = standablePos[0];
-                y = standY;
-                z = standablePos[1];
+
+                x = teleportPos[0];
+                y = teleportPos[1];
+                z = teleportPos[2];
             } else {
                 x = aimX;
                 y = standY;
@@ -99,7 +104,59 @@ public class TopTeleportManager {
         mc.thePlayer.sendChatMessage("/tp " + x + " " + y + " " + z);
     }
 
-    private double[] findSafeStandablePosition(net.minecraft.util.BlockPos pos, net.minecraft.block.Block block, net.minecraft.block.state.IBlockState blockState, net.minecraft.util.AxisAlignedBB targetBox, double standY, double preferredX, double preferredZ) {
+    private double[] resolveSafetyFallback(net.minecraft.util.BlockPos pos, double preferredX, double preferredZ, int fallbackMode, String color1, String color2, String reset, String prefix) {
+        if (fallbackMode == FALLBACK_ASCEND) {
+            double[] ascended = findSafeTeleportAbove(pos, preferredX, preferredZ);
+            if (ascended != null) {
+                return ascended;
+            }
+
+            if (color1 != null) {
+                mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
+                    color1 + prefix + color2 + "No safe position found above the target block!" + reset));
+            }
+            return null;
+        }
+
+        net.minecraft.block.state.IBlockState blockState = mc.theWorld.getBlockState(pos);
+        net.minecraft.block.Block block = blockState.getBlock();
+        net.minecraft.util.AxisAlignedBB boundingBox = block.getCollisionBoundingBox(mc.theWorld, pos, blockState);
+        if (boundingBox == null) {
+            if (color1 != null) {
+                mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
+                    color1 + prefix + color2 + "No safe position found near the target block!" + reset));
+            }
+            return null;
+        }
+
+        double standY = getStandY(pos, block, boundingBox);
+
+        if (fallbackMode == FALLBACK_CENTER) {
+            return new double[]{pos.getX() + 0.5, standY, pos.getZ() + 0.5};
+        }
+
+        if (fallbackMode == FALLBACK_EDGE) {
+            return getEdgeFallbackPosition(pos, boundingBox, standY, preferredX, preferredZ);
+        }
+
+        if (color1 != null) {
+            mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
+                color1 + prefix + color2 + "No safe position found near the target block!" + reset));
+        }
+        return null;
+    }
+
+    private double[] findSafeTeleportPosition(net.minecraft.util.BlockPos pos, net.minecraft.block.Block block, net.minecraft.block.state.IBlockState blockState, net.minecraft.util.AxisAlignedBB targetBox, double preferredX, double preferredZ) {
+        double standY = getStandY(pos, block, targetBox);
+        double[] standablePos = findSafeStandablePosition(pos, block, blockState, standY, preferredX, preferredZ);
+        if (standablePos == null) {
+            return null;
+        }
+
+        return new double[]{standablePos[0], standY, standablePos[1]};
+    }
+
+    private double[] findSafeStandablePosition(net.minecraft.util.BlockPos pos, net.minecraft.block.Block block, net.minecraft.block.state.IBlockState blockState, double standY, double preferredX, double preferredZ) {
         double playerHalfWidth = mc.thePlayer.width / 2.0;
         double playerHeight = 1.8;
 
@@ -171,6 +228,60 @@ public class TopTeleportManager {
         }
 
         return bestPos;
+    }
+
+    private double[] findSafeTeleportAbove(net.minecraft.util.BlockPos startPos, double preferredX, double preferredZ) {
+        for (int y = startPos.getY() + 1; y < 256; y++) {
+            net.minecraft.util.BlockPos candidatePos = new net.minecraft.util.BlockPos(startPos.getX(), y, startPos.getZ());
+            net.minecraft.block.state.IBlockState candidateState = mc.theWorld.getBlockState(candidatePos);
+            net.minecraft.block.Block candidateBlock = candidateState.getBlock();
+            net.minecraft.util.AxisAlignedBB candidateBox = candidateBlock.getCollisionBoundingBox(mc.theWorld, candidatePos, candidateState);
+
+            if (candidateBox == null) {
+                continue;
+            }
+
+            double standY = getStandY(candidatePos, candidateBlock, candidateBox);
+            double[] standablePos = findSafeStandablePosition(candidatePos, candidateBlock, candidateState, standY, preferredX, preferredZ);
+            if (standablePos != null) {
+                return new double[]{standablePos[0], standY, standablePos[1]};
+            }
+        }
+
+        return null;
+    }
+
+    private double[] getEdgeFallbackPosition(net.minecraft.util.BlockPos pos, net.minecraft.util.AxisAlignedBB boundingBox, double standY, double preferredX, double preferredZ) {
+        double minX = boundingBox.minX;
+        double maxX = boundingBox.maxX;
+        double minZ = boundingBox.minZ;
+        double maxZ = boundingBox.maxZ;
+
+        double x = clamp(preferredX, minX, maxX);
+        double z = clamp(preferredZ, minZ, maxZ);
+
+        double distanceToMinX = Math.abs(x - minX);
+        double distanceToMaxX = Math.abs(maxX - x);
+        double distanceToMinZ = Math.abs(z - minZ);
+        double distanceToMaxZ = Math.abs(maxZ - z);
+
+        double nearestEdgeDistance = Math.min(Math.min(distanceToMinX, distanceToMaxX), Math.min(distanceToMinZ, distanceToMaxZ));
+
+        if (nearestEdgeDistance == distanceToMinX) {
+            x = minX;
+        } else if (nearestEdgeDistance == distanceToMaxX) {
+            x = maxX;
+        } else if (nearestEdgeDistance == distanceToMinZ) {
+            z = minZ;
+        } else {
+            z = maxZ;
+        }
+
+        return new double[]{x, standY, z};
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private boolean isPlayerBoxClear(net.minecraft.util.BlockPos pos, net.minecraft.util.AxisAlignedBB playerBox) {

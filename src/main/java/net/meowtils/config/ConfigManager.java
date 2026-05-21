@@ -24,6 +24,7 @@ public class ConfigManager {
     private int cpReturnSlot = 0;   // Hotbar slot for checkpoint return (default: slot 1)
     private int cpSetSlot = 2;      // Hotbar slot for checkpoint set (default: slot 3)
     private boolean topTeleportSafetyChecks = true;
+    private int topTeleportSafetyFallbackMode = 0;
     private double tpForwardDistance = 8.0;
 
     private final Map<String, String> COLOR_MAP = new HashMap<String, String>();
@@ -73,6 +74,7 @@ public class ConfigManager {
     public int getCpReturnSlot() { syncFromOneConfig(); return cpReturnSlot; }
     public int getCpSetSlot() { syncFromOneConfig(); return cpSetSlot; }
     public boolean isTopTeleportSafetyChecksEnabled() { syncFromOneConfig(); return topTeleportSafetyChecks; }
+    public int getTopTeleportSafetyFallbackMode() { syncFromOneConfig(); return topTeleportSafetyFallbackMode; }
     public double getTpForwardDistance() { syncFromOneConfig(); return tpForwardDistance; }
     public Map<String, String> getColorMap() { return COLOR_MAP; }
     public void openConfigGui() { oneConfig.openGui(); }
@@ -128,6 +130,14 @@ public class ConfigManager {
         saveConfig();
     }
 
+    public void setTopTeleportSafetyFallbackMode(int mode) {
+        if (mode >= 0 && mode <= 3) {
+            topTeleportSafetyFallbackMode = mode;
+            MeowtilsOneConfig.topTeleportSafetyFallbackMode = topTeleportSafetyFallbackMode;
+            saveConfig();
+        }
+    }
+
     public void setTpForwardDistance(double distance) {
         if (distance > 0.0 || distance == -1.0) {
             tpForwardDistance = distance;
@@ -166,6 +176,7 @@ public class ConfigManager {
         MeowtilsOneConfig.cpReturnSlot = cpReturnSlot + 1;
         MeowtilsOneConfig.cpSetSlot = cpSetSlot + 1;
         MeowtilsOneConfig.topTeleportSafetyChecks = topTeleportSafetyChecks;
+        MeowtilsOneConfig.topTeleportSafetyFallbackMode = topTeleportSafetyFallbackMode;
         MeowtilsOneConfig.tpForwardDistance = (float) tpForwardDistance;
     }
 
@@ -199,6 +210,10 @@ public class ConfigManager {
 
         if (topTeleportSafetyChecks != MeowtilsOneConfig.topTeleportSafetyChecks) {
             topTeleportSafetyChecks = MeowtilsOneConfig.topTeleportSafetyChecks;
+        }
+
+        if (topTeleportSafetyFallbackMode != MeowtilsOneConfig.topTeleportSafetyFallbackMode) {
+            topTeleportSafetyFallbackMode = MeowtilsOneConfig.topTeleportSafetyFallbackMode;
         }
 
         if (Math.abs(tpForwardDistance - MeowtilsOneConfig.tpForwardDistance) > 1.0E-6) {
@@ -249,6 +264,13 @@ public class ConfigManager {
                     } catch (NumberFormatException e) { }
                 } else if (key.equals("topTeleportSafetyChecks") || key.equals("lookTeleportSafetyChecks")) {
                     topTeleportSafetyChecks = value.equalsIgnoreCase("true");
+                } else if (key.equals("topTeleportSafetyFallbackMode")) {
+                    try {
+                        int mode = Integer.parseInt(value);
+                        if (mode >= 0 && mode <= 3) {
+                            topTeleportSafetyFallbackMode = mode;
+                        }
+                    } catch (NumberFormatException e) { }
                 } else if (key.equals("tpForwardDistance")) {
                     try {
                         double distance = Double.parseDouble(value);
@@ -277,6 +299,7 @@ public class ConfigManager {
             writer.write("cpReturnSlot=" + (cpReturnSlot + 1) + "\n");
             writer.write("cpSetSlot=" + (cpSetSlot + 1) + "\n");
             writer.write("topTeleportSafetyChecks=" + topTeleportSafetyChecks + "\n");
+            writer.write("topTeleportSafetyFallbackMode=" + topTeleportSafetyFallbackMode + "\n");
             writer.write("tpForwardDistance=" + tpForwardDistance + "\n");
             writer.close();
         } catch (IOException e) {
