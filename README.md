@@ -48,6 +48,8 @@ The mod registers these commands (arguments enclosed in brackets are optional):
 2. Place the mod JAR in your `mods` folder.
 3. Launch the Forge profile in Minecraft.
 
+The release JAR bundles OneConfig, so you do not need to install it separately.
+
 ## Building from source
 
 ```powershell

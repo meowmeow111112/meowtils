@@ -59,9 +59,21 @@ public class MeowtilsOneConfig extends Config {
     @Slider(name = "Forward Teleport Distance", category = "Teleport", min = 1.0f, max = 256.0f, step = 1)
     public float tpForwardDistance = 8.0f;
 
+    private boolean initialized;
+
     public MeowtilsOneConfig() {
         super(new Mod("Meowtils", ModType.UTIL_QOL), "meowtils.json");
         addDependency("topTeleportSafetyFallbackMode", "topTeleportSafetyChecks");
-        initialize();
+        try {
+            initialize();
+            initialized = true;
+        } catch (Throwable throwable) {
+            initialized = false;
+            System.err.println("Meowtils: OneConfig failed to initialize, continuing with in-memory defaults.");
+        }
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 }
