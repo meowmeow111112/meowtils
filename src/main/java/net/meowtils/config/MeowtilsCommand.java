@@ -151,7 +151,7 @@ public class MeowtilsCommand implements ICommand {
     }
 
     private boolean handleCheckpointReturnSlotCommand(ICommandSender sender, String[] args, String command, String color1, String color2, String reset, String prefix) {
-        if (!command.equals("crs") && !command.equals("checkpointreturnerslot")) {
+        if (!command.equals("crs") && !command.equals("checkpointreturnslot")) {
             return false;
         }
 
