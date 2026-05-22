@@ -67,7 +67,7 @@ public class ConfigManager {
     public int getTopTeleportSafetyFallbackMode() { syncFromOneConfig(); return topTeleportSafetyFallbackMode; }
     public double getTpForwardDistance() { syncFromOneConfig(); return tpForwardDistance; }
     public Map<String, String> getColorMap() { return COLOR_MAP; }
-    public void openConfigGui() { oneConfig.openGui(); }
+    public void openConfigGui() { if (oneConfig.isInitialized()) oneConfig.openGui(); }
 
     public void toggleTopTeleportSafetyChecks() {
         topTeleportSafetyChecks = !topTeleportSafetyChecks;
@@ -201,6 +201,8 @@ public class ConfigManager {
     }
 
     private void saveConfig() {
-        oneConfig.save();
+        if (oneConfig.isInitialized()) {
+            oneConfig.save();
+        }
     }
 }
