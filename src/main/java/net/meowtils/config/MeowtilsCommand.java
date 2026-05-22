@@ -201,7 +201,7 @@ public class MeowtilsCommand implements ICommand {
     }
 
     private boolean handleTeleportForwardDistanceCommand(ICommandSender sender, String[] args, String command, String color1, String color2, String reset, String prefix) {
-        if (!command.equals("tpdist") && !command.equals("teleportforwarddistance")) {
+        if (!command.equals("tpdist") && !command.equals("teleportdistance")) {
             return false;
         }
 
@@ -218,7 +218,7 @@ public class MeowtilsCommand implements ICommand {
             }
 
             configManager.setTpForwardDistance(distance);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Teleport forward distance set to " + distance + "." + reset));
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Teleport distance set to " + distance + "." + reset));
         } catch (NumberFormatException e) {
             sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Invalid distance. Use a positive number." + reset));
         }

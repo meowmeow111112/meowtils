@@ -37,7 +37,7 @@ The mod registers these commands (arguments enclosed in brackets are optional):
 - `/mt crs <slot>` or `/mt checkpointreturnslot <slot>` - Set the hotbar slot used to return from a checkpoint.
 - `/mt css <slot>` or `/mt checkpointsetslot <slot>` - Set the hotbar slot used to set a checkpoint.
 - `/mt safetp` or `/mt safeteleport` - Toggle safety checks for Teleport on Top.
-- `/mt tpdist <distance>` or `/mt teleportforwarddistance <distance>` - Set the Teleport Forward distance.
+- `/mt tpdist <distance>` or `/mt teleportdistance <distance>` - Set the teleport distance.
 - `/mt color1 <name>` - Set the first chat color for mod messages.
 - `/mt color2 <name>` - Set the second chat color for mod messages.
 - `/mt list` - Show the available chat colors.
