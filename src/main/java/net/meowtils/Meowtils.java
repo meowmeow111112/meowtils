@@ -13,7 +13,7 @@ import net.minecraft.util.ChatComponentText;
 import net.meowtils.checkpoint.CheckpointManager;
 import net.meowtils.config.ConfigManager;
 import net.meowtils.config.MeowtilsCommand;
-import net.meowtils.debug.PacketDebugManager;
+import net.meowtils.debug.OutgoingPacketTraceManager;
 import net.meowtils.parkour.ParkourManager;
 import net.meowtils.teleport.TeleportManager;
 import net.meowtils.teleport.TPCommand;
@@ -30,7 +30,7 @@ public class Meowtils {
     private final ConfigManager configManager = new ConfigManager();
     private final ParkourManager parkourManager = new ParkourManager();
     private final TeleportManager teleportManager = new TeleportManager();
-    private final PacketDebugManager packetDebugManager = new PacketDebugManager();
+    private final OutgoingPacketTraceManager outgoingPacketTraceManager = new OutgoingPacketTraceManager();
     private final CheckpointManager checkpointManager = new CheckpointManager(new CheckpointManager.TeleportCallback() {
         @Override
         public void setTeleportRotation(float yaw, float pitch, net.minecraft.util.Vec3 expectedPos) {
@@ -69,10 +69,11 @@ public class Meowtils {
 
         ClientCommandHandler.instance.registerCommand(new TPCommand(teleportManager));
         ClientCommandHandler.instance.registerCommand(new TPFCommand());
-        ClientCommandHandler.instance.registerCommand(new MeowtilsCommand(configManager, packetDebugManager));
+        ClientCommandHandler.instance.registerCommand(new MeowtilsCommand(configManager, outgoingPacketTraceManager));
 
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(packetDebugManager);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(teleportManager);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(outgoingPacketTraceManager);
     }
 
     // ================= EVENT HANDLERS =================
@@ -80,15 +81,6 @@ public class Meowtils {
     @SubscribeEvent
     public void onClientChatReceived(net.minecraftforge.client.event.ClientChatReceivedEvent event) {
         parkourManager.onClientChatReceived(event);
-
-        if (!teleportManager.shouldSuppressNextMessage()) return;
-
-        String plain = event.message.getUnformattedText();
-        if (plain.contains("Teleport")) {
-            event.setCanceled(true);
-            teleportManager.onTeleportMessageReceived();
-            teleportManager.clearSuppression();
-        }
     }
 
     @SubscribeEvent
@@ -156,7 +148,6 @@ public class Meowtils {
 
         parkourManager.onClientTick();
         updateParkourHotbarState();
-        teleportManager.onClientTick();
     }
 
     private void updateParkourHotbarState() {

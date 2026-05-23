@@ -1,21 +1,21 @@
 package net.meowtils.config;
 
-import net.meowtils.debug.PacketDebugManager;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
+import net.meowtils.debug.OutgoingPacketTraceManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MeowtilsCommand implements ICommand {
     private final ConfigManager configManager;
-    private final PacketDebugManager packetDebugManager;
+    private final OutgoingPacketTraceManager outgoingPacketTraceManager;
 
-    public MeowtilsCommand(ConfigManager configManager, PacketDebugManager packetDebugManager) {
+    public MeowtilsCommand(ConfigManager configManager, OutgoingPacketTraceManager outgoingPacketTraceManager) {
         this.configManager = configManager;
-        this.packetDebugManager = packetDebugManager;
+        this.outgoingPacketTraceManager = outgoingPacketTraceManager;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class MeowtilsCommand implements ICommand {
             return;
         }
 
-        if (handlePacketDebugCommand(sender, args, command, color1, color2, reset, prefix)) {
+        if (handlePacketTraceCommand(sender, args, command, color1, color2, reset, prefix)) {
             return;
         }
 
@@ -115,72 +115,15 @@ public class MeowtilsCommand implements ICommand {
 
         sender.addChatMessage(new ChatComponentText(color1 + prefix + " Available commands:" + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " config:" + color2 + " Open the OneConfig settings GUI." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + " packettrace:" + color2 + " Trace outgoing packets (on/off/toggle/status)." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " prefix:" + color2 + " Set the chat prefix." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " crs:" + color2 + " Set the hotbar slot for checkpoint return." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " css:" + color2 + " Set the hotbar slot for checkpoint set." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " safetp:" + color2 + " Toggle safety checks for TP on top." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " tpdist:" + color2 + " Set forward teleport distance." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + " packetdebug:" + color2 + " Debug inbound packets (on/off/chat/log/both/status)." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " color1:" + color2 + " Set the first chat color." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " color2:" + color2 + " Set the second chat color." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " list:" + color2 + " Show available colors." + reset));
-        return true;
-    }
-
-    private boolean handlePacketDebugCommand(ICommandSender sender, String[] args, String command, String color1, String color2, String reset, String prefix) {
-        if (!command.equals("packetdebug") && !command.equals("pdebug") && !command.equals("packets")) {
-            return false;
-        }
-
-        if (args.length == 1 || args[1].equalsIgnoreCase("status")) {
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + packetDebugManager.getStatusText() + reset));
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /mt packetdebug <on|off|toggle|chat|log|both|status>" + reset));
-            return true;
-        }
-
-        String action = args[1].toLowerCase();
-
-        if (action.equals("on")) {
-            packetDebugManager.setEnabled(true);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Packet debug enabled." + reset));
-            return true;
-        }
-
-        if (action.equals("off")) {
-            packetDebugManager.setEnabled(false);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Packet debug disabled." + reset));
-            return true;
-        }
-
-        if (action.equals("toggle")) {
-            packetDebugManager.setEnabled(!packetDebugManager.isEnabled());
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + packetDebugManager.getStatusText() + "." + reset));
-            return true;
-        }
-
-        if (action.equals("chat")) {
-            packetDebugManager.setMode(PacketDebugManager.OutputMode.CHAT);
-            packetDebugManager.setEnabled(true);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Packet debug mode set to chat." + reset));
-            return true;
-        }
-
-        if (action.equals("log")) {
-            packetDebugManager.setMode(PacketDebugManager.OutputMode.LOG);
-            packetDebugManager.setEnabled(true);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Packet debug mode set to log." + reset));
-            return true;
-        }
-
-        if (action.equals("both")) {
-            packetDebugManager.setMode(PacketDebugManager.OutputMode.BOTH);
-            packetDebugManager.setEnabled(true);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Packet debug mode set to both." + reset));
-            return true;
-        }
-
-        sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Unknown packetdebug action: " + action + "." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /mt packetdebug <on|off|toggle|chat|log|both|status>" + reset));
         return true;
     }
 
@@ -190,6 +133,42 @@ public class MeowtilsCommand implements ICommand {
         }
 
         configManager.openConfigGui();
+        return true;
+    }
+
+    private boolean handlePacketTraceCommand(ICommandSender sender, String[] args, String command, String color1, String color2, String reset, String prefix) {
+        if (!command.equals("packettrace") && !command.equals("ptrace") && !command.equals("packetsout")) {
+            return false;
+        }
+
+        if (args.length == 1 || args[1].equalsIgnoreCase("status")) {
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + outgoingPacketTraceManager.getStatusText() + reset));
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /mt packettrace <on|off|toggle|status>" + reset));
+            return true;
+        }
+
+        String action = args[1].toLowerCase();
+
+        if (action.equals("on")) {
+            outgoingPacketTraceManager.setEnabled(true);
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Outgoing packet trace enabled." + reset));
+            return true;
+        }
+
+        if (action.equals("off")) {
+            outgoingPacketTraceManager.setEnabled(false);
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Outgoing packet trace disabled." + reset));
+            return true;
+        }
+
+        if (action.equals("toggle")) {
+            outgoingPacketTraceManager.setEnabled(!outgoingPacketTraceManager.isEnabled());
+            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + outgoingPacketTraceManager.getStatusText() + reset));
+            return true;
+        }
+
+        sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Unknown packettrace action: " + action + "." + reset));
+        sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /mt packettrace <on|off|toggle|status>" + reset));
         return true;
     }
 

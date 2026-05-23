@@ -3,48 +3,31 @@ package net.meowtils.debug;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import net.minecraft.util.ChatComponentText;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 
-public class PacketDebugManager {
-    public enum OutputMode {
-        LOG,
-        CHAT,
-        BOTH
-    }
-
-    private static final Logger LOGGER = LogManager.getLogger("MeowtilsPacketDebug");
-    private static final String HANDLER_NAME = "meowtils_packet_debug_inbound";
-    private static final int MAX_FIELDS = 8;
-    private static final int MAX_CHAT_LEN = 220;
+public class OutgoingPacketTraceManager {
+    private static final Logger LOGGER = LogManager.getLogger("MeowtilsPacketTrace");
+    private static final String HANDLER_NAME = "meowtils_outgoing_packet_trace";
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
     private volatile boolean enabled = false;
-    private volatile OutputMode mode = OutputMode.LOG;
     private volatile boolean handlerAttached = false;
-    private int packetCount = 0;
+    private static final int MAX_CHAT_LEN = 240;
 
     public boolean isEnabled() {
         return enabled;
-    }
-
-    public OutputMode getMode() {
-        return mode;
-    }
-
-    public int getPacketCount() {
-        return packetCount;
     }
 
     public void setEnabled(boolean enabled) {
@@ -56,14 +39,8 @@ public class PacketDebugManager {
         }
     }
 
-    public void setMode(OutputMode mode) {
-        if (mode != null) {
-            this.mode = mode;
-        }
-    }
-
     public String getStatusText() {
-        return "Packet debug is " + (enabled ? "ON" : "OFF") + " (attached: " + (handlerAttached ? "yes" : "no") + ", mode: " + mode.name().toLowerCase() + ", captured: " + packetCount + ")";
+        return "Outgoing packet trace is " + (enabled ? "ON" : "OFF") + " (attached: " + (handlerAttached ? "yes" : "no") + ")";
     }
 
     @SubscribeEvent
@@ -87,7 +64,6 @@ public class PacketDebugManager {
     @SubscribeEvent
     public void onDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         removeHandler();
-        packetCount = 0;
     }
 
     private void injectHandler() {
@@ -129,11 +105,12 @@ public class PacketDebugManager {
 
                 currentChannel.pipeline().addBefore(anchorName, HANDLER_NAME, new ChannelDuplexHandler() {
                     @Override
-                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
                         if (enabled && msg instanceof Packet) {
-                            onIncomingPacket((Packet<?>) msg);
+                            String text = describePacket((Packet<?>) msg);
+                            postToChat(trimForChat(text));
                         }
-                        super.channelRead(ctx, msg);
+                        super.write(ctx, msg, promise);
                     }
                 });
                 handlerAttached = true;
@@ -164,54 +141,14 @@ public class PacketDebugManager {
         }
     }
 
-    private void onIncomingPacket(Packet<?> packet) {
-        packetCount++;
-        String details = "IN #" + packetCount + " " + buildPacketSummary(packet);
-
-        if (mode == OutputMode.LOG || mode == OutputMode.BOTH) {
-            LOGGER.info(details);
-        }
-
-        if (mode == OutputMode.CHAT || mode == OutputMode.BOTH) {
-            postToChat(trimForChat(details));
-        }
-    }
-
-    private void postToChat(final String text) {
-        if (mc.thePlayer == null) {
-            return;
-        }
-
-        mc.addScheduledTask(new Runnable() {
-            @Override
-            public void run() {
-                if (mc.thePlayer != null) {
-                    mc.thePlayer.addChatMessage(new ChatComponentText(text));
-                }
-            }
-        });
-    }
-
-    private String trimForChat(String text) {
-        if (text.length() <= MAX_CHAT_LEN) {
-            return text;
-        }
-        return text.substring(0, MAX_CHAT_LEN - 3) + "...";
-    }
-
-    private String buildPacketSummary(Packet<?> packet) {
-        Class<?> type = packet.getClass();
-        StringBuilder sb = new StringBuilder(type.getSimpleName());
+    private String describePacket(Packet<?> packet) {
+        StringBuilder sb = new StringBuilder(packet.getClass().getSimpleName());
         sb.append(" {");
 
-        Field[] fields = type.getDeclaredFields();
+        Field[] fields = collectFields(packet.getClass());
         int added = 0;
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
-            if (Modifier.isStatic(field.getModifiers())) {
-                continue;
-            }
-
             Object value = readFieldValue(field, packet);
             if (value == null || !isPrintableValue(value)) {
                 continue;
@@ -224,7 +161,7 @@ public class PacketDebugManager {
             sb.append(field.getName()).append("=").append(value);
             added++;
 
-            if (added >= MAX_FIELDS) {
+            if (added >= 8) {
                 sb.append(", ...");
                 break;
             }
@@ -232,6 +169,23 @@ public class PacketDebugManager {
 
         sb.append("}");
         return sb.toString();
+    }
+
+    private Field[] collectFields(Class<?> type) {
+        java.util.ArrayList<Field> fields = new java.util.ArrayList<Field>();
+        Class<?> current = type;
+        while (current != null) {
+            Field[] declared = current.getDeclaredFields();
+            for (int i = 0; i < declared.length; i++) {
+                Field field = declared[i];
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                fields.add(field);
+            }
+            current = current.getSuperclass();
+        }
+        return fields.toArray(new Field[fields.size()]);
     }
 
     private Object readFieldValue(Field field, Packet<?> packet) {
@@ -303,5 +257,22 @@ public class PacketDebugManager {
         }
 
         return null;
+    }
+
+    private void postToChat(final String text) {
+        if (mc.thePlayer == null) return;
+        mc.addScheduledTask(new Runnable() {
+            @Override
+            public void run() {
+                if (mc.thePlayer != null) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText(text));
+                }
+            }
+        });
+    }
+
+    private String trimForChat(String text) {
+        if (text.length() <= MAX_CHAT_LEN) return text;
+        return text.substring(0, MAX_CHAT_LEN - 3) + "...";
     }
 }
