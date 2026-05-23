@@ -8,10 +8,12 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraft.util.ChatComponentText;
 
 import net.meowtils.checkpoint.CheckpointManager;
 import net.meowtils.config.ConfigManager;
 import net.meowtils.config.MeowtilsCommand;
+import net.meowtils.debug.PacketDebugManager;
 import net.meowtils.parkour.ParkourManager;
 import net.meowtils.teleport.TeleportManager;
 import net.meowtils.teleport.TPCommand;
@@ -28,6 +30,7 @@ public class Meowtils {
     private final ConfigManager configManager = new ConfigManager();
     private final ParkourManager parkourManager = new ParkourManager();
     private final TeleportManager teleportManager = new TeleportManager();
+    private final PacketDebugManager packetDebugManager = new PacketDebugManager();
     private final CheckpointManager checkpointManager = new CheckpointManager(new CheckpointManager.TeleportCallback() {
         @Override
         public void setTeleportRotation(float yaw, float pitch, net.minecraft.util.Vec3 expectedPos) {
@@ -66,9 +69,10 @@ public class Meowtils {
 
         ClientCommandHandler.instance.registerCommand(new TPCommand(teleportManager));
         ClientCommandHandler.instance.registerCommand(new TPFCommand());
-        ClientCommandHandler.instance.registerCommand(new MeowtilsCommand(configManager));
+        ClientCommandHandler.instance.registerCommand(new MeowtilsCommand(configManager, packetDebugManager));
 
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(packetDebugManager);
     }
 
     // ================= EVENT HANDLERS =================

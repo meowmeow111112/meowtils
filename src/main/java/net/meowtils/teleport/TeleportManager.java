@@ -2,6 +2,7 @@ package net.meowtils.teleport;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Vec3;
+import net.minecraft.util.ChatComponentText;
 
 public class TeleportManager {
     private final Minecraft mc = Minecraft.getMinecraft();
