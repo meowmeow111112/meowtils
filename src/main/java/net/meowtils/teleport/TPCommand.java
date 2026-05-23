@@ -48,8 +48,8 @@ public class TPCommand implements ICommand {
             if (args.length == 5)
                 pitch = (float) parseCoordinate(args[4], mc.thePlayer.rotationPitch);
 
-            mc.thePlayer.sendChatMessage("/tp " + x + " " + y + " " + z);
             teleportManager.setTeleportRotation(yaw, pitch, new Vec3(x, y, z));
+            mc.thePlayer.sendChatMessage("/tp " + x + " " + y + " " + z);
 
         } catch (NumberFormatException e) {
             forwardToServer(args);

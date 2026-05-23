@@ -100,8 +100,8 @@ public class CheckpointManager {
             return;
         }
 
-        mc.thePlayer.sendChatMessage("/tp " + checkpointPos.xCoord + " " + checkpointPos.yCoord + " " + checkpointPos.zCoord);
         teleportCallback.setTeleportRotation(checkpointYaw, checkpointPitch, checkpointPos);
+        mc.thePlayer.sendChatMessage("/tp " + checkpointPos.xCoord + " " + checkpointPos.yCoord + " " + checkpointPos.zCoord);
     }
 
     public interface TeleportCallback {
