@@ -71,25 +71,16 @@ public class ThroughTeleportManager {
             double eyeY = rayTraceResult.hitVec.yCoord;
             double eyeZ = rayTraceResult.hitVec.zCoord;
 
-            switch (rayTraceResult.sideHit) {
-                case WEST:
-                case EAST:
-                    eyeX = searchStart.xCoord + throughDirection.xCoord * distance;
-                    eyeZ = centerZ;
-                    break;
-                case NORTH:
-                case SOUTH:
-                    eyeX = centerX;
-                    eyeZ = searchStart.zCoord + throughDirection.zCoord * distance;
-                    break;
-                case DOWN:
-                case UP:
-                    eyeX = centerX;
-                    eyeY = searchStart.yCoord + throughDirection.yCoord * distance;
-                    eyeZ = centerZ;
-                    break;
-                default:
-                    break;
+            if (rayTraceResult.sideHit == net.minecraft.util.EnumFacing.WEST || rayTraceResult.sideHit == net.minecraft.util.EnumFacing.EAST) {
+                eyeX = searchStart.xCoord + throughDirection.xCoord * distance;
+                eyeZ = centerZ;
+            } else if (rayTraceResult.sideHit == net.minecraft.util.EnumFacing.NORTH || rayTraceResult.sideHit == net.minecraft.util.EnumFacing.SOUTH) {
+                eyeX = centerX;
+                eyeZ = searchStart.zCoord + throughDirection.zCoord * distance;
+            } else if (rayTraceResult.sideHit == net.minecraft.util.EnumFacing.DOWN || rayTraceResult.sideHit == net.minecraft.util.EnumFacing.UP) {
+                eyeX = centerX;
+                eyeY = searchStart.yCoord + throughDirection.yCoord * distance;
+                eyeZ = centerZ;
             }
 
             double feetX = eyeX;
