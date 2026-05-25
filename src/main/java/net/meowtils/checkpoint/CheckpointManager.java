@@ -106,5 +106,7 @@ public class CheckpointManager {
 
     public interface TeleportCallback {
         void setTeleportRotation(float yaw, float pitch, Vec3 expectedPos);
+
+        default void markTeleportCaptureWindow() {}
     }
 }

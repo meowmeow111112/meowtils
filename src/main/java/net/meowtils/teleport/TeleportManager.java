@@ -6,7 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.Vec3;
@@ -27,6 +26,7 @@ public class TeleportManager {
     private float pendingYaw;
     private float pendingPitch;
     private long teleportStartTime = 0;
+    private boolean applyRotationAfterNextC06 = false;
 
     private boolean suppressNextTeleportServerMessage = false;
 
@@ -39,10 +39,6 @@ public class TeleportManager {
         pendingYaw = yaw;
         pendingPitch = pitch;
         teleportStartTime = System.currentTimeMillis();
-
-        if (mc.thePlayer != null && mc.thePlayer.sendQueue != null) {
-            mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C05PacketPlayerLook(yaw, pitch, mc.thePlayer.onGround));
-        }
     }
 
     public boolean shouldSuppressNextMessage() {
@@ -67,6 +63,7 @@ public class TeleportManager {
         if (pendingTeleportRotation && teleportStartTime > 0 && System.currentTimeMillis() - teleportStartTime > TELEPORT_TIMEOUT_MS) {
             pendingTeleportRotation = false;
             teleportStartTime = 0;
+            applyRotationAfterNextC06 = false;
         }
 
         if (!handlerAttached) {
@@ -79,6 +76,7 @@ public class TeleportManager {
         removeHandler();
         pendingTeleportRotation = false;
         teleportStartTime = 0;
+        applyRotationAfterNextC06 = false;
     }
 
     private void injectHandler() {
@@ -130,6 +128,11 @@ public class TeleportManager {
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
                         super.write(ctx, msg, promise);
+
+                        if (applyRotationAfterNextC06 && msg instanceof C03PacketPlayer.C06PacketPlayerPosLook) {
+                            applyLocalRotation();
+                            applyRotationAfterNextC06 = false;
+                        }
                     }
                 });
                 handlerAttached = true;
@@ -162,6 +165,13 @@ public class TeleportManager {
 
     private void onTeleportPacketReceived() {
         if (!pendingTeleportRotation || mc.thePlayer == null) {
+            return;
+        }
+        applyRotationAfterNextC06 = true;
+    }
+
+    private void applyLocalRotation() {
+        if (mc.thePlayer == null) {
             return;
         }
 

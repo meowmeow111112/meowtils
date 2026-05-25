@@ -4,18 +4,15 @@ import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
-import net.meowtils.debug.OutgoingPacketTraceManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MeowtilsCommand implements ICommand {
     private final ConfigManager configManager;
-    private final OutgoingPacketTraceManager outgoingPacketTraceManager;
 
-    public MeowtilsCommand(ConfigManager configManager, OutgoingPacketTraceManager outgoingPacketTraceManager) {
+    public MeowtilsCommand(ConfigManager configManager) {
         this.configManager = configManager;
-        this.outgoingPacketTraceManager = outgoingPacketTraceManager;
     }
 
     @Override
@@ -56,10 +53,6 @@ public class MeowtilsCommand implements ICommand {
         }
 
         if (handleOpenConfigCommand(sender, command, color1, color2, reset, prefix)) {
-            return;
-        }
-
-        if (handlePacketTraceCommand(sender, args, command, color1, color2, reset, prefix)) {
             return;
         }
 
@@ -115,7 +108,6 @@ public class MeowtilsCommand implements ICommand {
 
         sender.addChatMessage(new ChatComponentText(color1 + prefix + " Available commands:" + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " config:" + color2 + " Open the OneConfig settings GUI." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + " packettrace:" + color2 + " Trace outgoing packets (on/off/toggle/status)." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " prefix:" + color2 + " Set the chat prefix." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " crs:" + color2 + " Set the hotbar slot for checkpoint return." + reset));
         sender.addChatMessage(new ChatComponentText(color1 + " css:" + color2 + " Set the hotbar slot for checkpoint set." + reset));
@@ -133,42 +125,6 @@ public class MeowtilsCommand implements ICommand {
         }
 
         configManager.openConfigGui();
-        return true;
-    }
-
-    private boolean handlePacketTraceCommand(ICommandSender sender, String[] args, String command, String color1, String color2, String reset, String prefix) {
-        if (!command.equals("packettrace") && !command.equals("ptrace") && !command.equals("packetsout")) {
-            return false;
-        }
-
-        if (args.length == 1 || args[1].equalsIgnoreCase("status")) {
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + outgoingPacketTraceManager.getStatusText() + reset));
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /mt packettrace <on|off|toggle|status>" + reset));
-            return true;
-        }
-
-        String action = args[1].toLowerCase();
-
-        if (action.equals("on")) {
-            outgoingPacketTraceManager.setEnabled(true);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Outgoing packet trace enabled." + reset));
-            return true;
-        }
-
-        if (action.equals("off")) {
-            outgoingPacketTraceManager.setEnabled(false);
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Outgoing packet trace disabled." + reset));
-            return true;
-        }
-
-        if (action.equals("toggle")) {
-            outgoingPacketTraceManager.setEnabled(!outgoingPacketTraceManager.isEnabled());
-            sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + outgoingPacketTraceManager.getStatusText() + reset));
-            return true;
-        }
-
-        sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Unknown packettrace action: " + action + "." + reset));
-        sender.addChatMessage(new ChatComponentText(color1 + prefix + color2 + "Usage: /mt packettrace <on|off|toggle|status>" + reset));
         return true;
     }
 

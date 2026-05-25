@@ -98,6 +98,7 @@ public class TopTeleportManager {
 
         // Register suppression state before sending the teleport command.
         teleportCallback.suppressNextTeleportMessage();
+        teleportCallback.markTeleportCaptureWindow();
 
         // Send teleport command
         mc.thePlayer.sendChatMessage("/tp " + x + " " + y + " " + z);
@@ -365,6 +366,8 @@ public class TopTeleportManager {
 
     public interface TeleportCallback {
         void suppressNextTeleportMessage();
+
+        default void markTeleportCaptureWindow() {}
     }
 }
 
