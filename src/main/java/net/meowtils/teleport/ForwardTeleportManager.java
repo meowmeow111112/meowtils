@@ -43,10 +43,13 @@ public class ForwardTeleportManager {
 
         // Register suppression state before sending the teleport command.
         teleportCallback.suppressNextTeleportMessage();
+        teleportCallback.markTeleportCaptureWindow();
         mc.thePlayer.sendChatMessage("/tp " + targetPos.xCoord + " " + targetPos.yCoord + " " + targetPos.zCoord);
     }
 
     public interface TeleportCallback {
         void suppressNextTeleportMessage();
+
+        default void markTeleportCaptureWindow() {}
     }
 }

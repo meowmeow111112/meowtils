@@ -105,6 +105,7 @@ public class ThroughTeleportManager {
             // If eye-aligned placement is valid, prefer it (preserves where the eye was aimed).
             if (isPlayerBoxClear(feetX, eyeAlignedFeet, feetZ)) {
                 teleportCallback.suppressNextTeleportMessage();
+                teleportCallback.markTeleportCaptureWindow();
                 mc.thePlayer.sendChatMessage("/tp " + feetX + " " + eyeAlignedFeet + " " + feetZ);
                 return;
             }
@@ -115,6 +116,7 @@ public class ThroughTeleportManager {
             double feetWithHeadUnderBlockAbove = blockAboveProbeY - playerHeight;
             if (isPlayerBoxClear(feetX, feetWithHeadUnderBlockAbove, feetZ)) {
                 teleportCallback.suppressNextTeleportMessage();
+                teleportCallback.markTeleportCaptureWindow();
                 mc.thePlayer.sendChatMessage("/tp " + feetX + " " + feetWithHeadUnderBlockAbove + " " + feetZ);
                 return;
             }
@@ -127,6 +129,7 @@ public class ThroughTeleportManager {
                     double candidateY = getMarchCandidateY(feetX, y, feetZ);
                     if (!Double.isNaN(candidateY)) {
                         teleportCallback.suppressNextTeleportMessage();
+                        teleportCallback.markTeleportCaptureWindow();
                         mc.thePlayer.sendChatMessage("/tp " + feetX + " " + candidateY + " " + feetZ);
                         return;
                     }
@@ -136,6 +139,7 @@ public class ThroughTeleportManager {
                     double candidateY = getMarchCandidateY(feetX, y, feetZ);
                     if (!Double.isNaN(candidateY)) {
                         teleportCallback.suppressNextTeleportMessage();
+                        teleportCallback.markTeleportCaptureWindow();
                         mc.thePlayer.sendChatMessage("/tp " + feetX + " " + candidateY + " " + feetZ);
                         return;
                     }
@@ -205,5 +209,7 @@ public class ThroughTeleportManager {
 
     public interface TeleportCallback {
         void suppressNextTeleportMessage();
+
+        default void markTeleportCaptureWindow() {}
     }
 }
