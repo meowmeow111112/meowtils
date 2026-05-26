@@ -63,6 +63,7 @@ public class MeowtilsOneConfig extends Config {
 
     public MeowtilsOneConfig() {
         super(new Mod("Meowtils", ModType.UTIL_QOL), "meowtils.json");
+
         try {
             initialize();
             initialized = true;
