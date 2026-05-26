@@ -56,7 +56,7 @@ The release JAR already includes OneConfig, so no additional installation is req
 
 ## Building from source
 
-```powershell
+```
 git clone https://github.com/meowmeow111112/meowtils
 cd meowtils
 ./gradlew build
