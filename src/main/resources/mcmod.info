@@ -2,13 +2,14 @@
 {
   "modid": "meowtils",
   "name": "Meowtils",
-  "description": "Teleportation utilities mod.",
+  "description": "Teleportation and parkour utilities mod.",
   "version": "1.0",
+  "license": "GPL-3.0",
   "mcversion": "1.8.9",
   "url": "",
   "updateUrl": "",
   "authorList": ["meowmeow111112"],
-  "credits": "The Forge and FML guys, me, and my bestie!",
+  "credits": "The Forge and FML guys, Polyfrost, me, and my bestie!",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []
