@@ -19,7 +19,7 @@ The mod includes commands to quickly change configs. It also overrides the serve
 
 ### OneConfig support
 
-This mod relies on OneConfig to provide a central config menu with convenient options to edit configs.
+This mod uses OneConfig to provide a central config menu with convenient options to edit configs.
 
 ## Commands
 
