@@ -1,29 +1,32 @@
-# meowtils
+# Meowtils
 
-meowtils is a client-side utility mod for Minecraft Forge 1.8.9.
-It focuses on teleportation helpers, checkpoint handling, and parkour-oriented quality-of-life tools.
+Meowtils is a client-side utility mod for Minecraft Forge 1.8.9 that adds teleportation tools, checkpoint handling, and quality-of-life features for movement and parkour.
 
 ## Features
 
-### Look TP
-
-Meowtils includes hotkeys to teleport to the block you're looking at. One hotkey teleports you on top, and another teleports you through (a wall, ceiling, or floor). TP on Top includes a toggleable safety check with fallback behaviors if the block you attempt to teleport to is not safe to stand on.
-
 ### Checkpoints
 
-The checkpoint system lets you store a position and return to it later using hotkeys and hotbar slot selection. You can configure hotkeys for the two actions or use the hotbar system. Hotbar slots can be configured for the set and return, and right-clicking with the configured slot active will trigger the assigned action. This is designed for those familiar with practice modes on parkour servers.
+Save a checkpoint and return to it in one click using Meowtils's checkpoint system. You can use separate hotkeys to set and return to checkpoints, or use the hotbar system, where you can configure hotbar slots to set and return to checkpoints by right-clicking, inspired by practice modes commonly found on parkour servers.
 
-### Utility commands
+### Look TP
 
-The mod includes commands to quickly change configs. It also overrides the server's /tp command to provide support for relative coordinates, facing angles, and arithmetic expressions on all servers.
+Choose hotkeys to teleport to where you're looking in different ways. Teleport directly onto the block you're looking at, move through walls, ceilings, and floors, or jump a configurable distance forward.
+Teleport on Top includes optional safety checks that can automatically search for safe nearby landing spots, with configurable fallback behavior when no safe position is found.
 
-### OneConfig support
+### OneConfig Support
 
+<<<<<<< HEAD
 This mod uses OneConfig to provide a central config menu with convenient options to edit configs.
+=======
+Meowtils uses OneConfig for its config interface, providing an easy way to customize the mod in-game. Use `/ocfg` to open the OneConfig menu, or `/mt config` to jump directly to the Meowtils settings page.
+>>>>>>> 1a8a1ed295d82de7ef42b954c0b162c302857a3d
 
 ## Commands
 
-The mod registers these commands (arguments enclosed in brackets are optional):
+Meowtils includes utility and config commands. The mod overrides the standard `/tp` command on the client side to provide consistent behavior across servers, including support for relative coordinates, rotation, and arithmetic expressions.
+
+Commands have `<required>` and `[optional]` arguments. 
+The mod registers these commands:
 
 - `/tp <x> <y> <z> [yaw] [pitch]` - Overrides the server's /tp, providing support for relative (~) coordinates, facing, and expressions.
 - `/tpf <yaw> [pitch]` - Change your facing direction without moving (~ for relative).
@@ -37,25 +40,30 @@ The mod registers these commands (arguments enclosed in brackets are optional):
 - `/mt crs <slot>` or `/mt checkpointreturnslot <slot>` - Set the hotbar slot used to return from a checkpoint.
 - `/mt css <slot>` or `/mt checkpointsetslot <slot>` - Set the hotbar slot used to set a checkpoint.
 - `/mt safetp` or `/mt safeteleport` - Toggle safety checks for Teleport on Top.
-- `/mt tpdist <distance>` or `/mt teleportdistance <distance>` - Set the teleport distance.
+- `/mt tpdist <distance>` or `/mt teleportdistance <distance>` - Set the Teleport Forward distance.
 - `/mt color1 <name>` - Set the first chat color for mod messages.
 - `/mt color2 <name>` - Set the second chat color for mod messages.
 - `/mt list` - Show the available chat colors.
 
 ## Installation
 
-1. Install the latest version of Minecraft Forge for 1.8.9.
-2. Place the mod JAR in your `mods` folder.
-3. Launch the Forge profile in Minecraft.
+1. Install Minecraft Forge for Minecraft 1.8.9.
+2. Download the latest Meowtils release JAR from the GitHub Releases page.
+3. Open your Minecraft `mods` folder:
+   - Windows: `%appdata%\.minecraft\mods`
+   - macOS: `~/Library/Application Support/minecraft/mods`
+   - Linux: `~/.minecraft/mods`
+4. Place the Meowtils JAR file into the `mods` folder.
+5. Launch Minecraft using your Forge 1.8.9 profile.
 
-The release JAR bundles OneConfig, so you do not need to install it separately.
+The release JAR already includes OneConfig, so no additional installation is required.
 
 ## Building from source
 
-```powershell
-git clone <repo-url>
+```
+git clone https://github.com/meowmeow111112/meowtils
 cd meowtils
-.\gradlew.bat build
+./gradlew build
 ```
 
 The compiled mod JAR will be written to `build/libs`.
