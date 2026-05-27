@@ -44,7 +44,7 @@ The mod registers these commands:
 ## Installation
 
 1. Install Minecraft Forge for Minecraft 1.8.9.
-2. Download the latest Meowtils release JAR from the GitHub Releases page.
+2. Download the latest Meowtils release JAR [here](https://github.com/meowmeow111112/meowtils/releases/latest).
 3. Open your Minecraft `mods` folder:
    - Windows: `%appdata%\.minecraft\mods`
    - macOS: `~/Library/Application Support/minecraft/mods`
