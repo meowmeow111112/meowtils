@@ -15,11 +15,7 @@ Teleport on Top includes optional safety checks that can automatically search fo
 
 ### OneConfig Support
 
-<<<<<<< HEAD
-This mod uses OneConfig to provide a central config menu with convenient options to edit configs.
-=======
 Meowtils uses OneConfig for its config interface, providing an easy way to customize the mod in-game. Use `/ocfg` to open the OneConfig menu, or `/mt config` to jump directly to the Meowtils settings page.
->>>>>>> 1a8a1ed295d82de7ef42b954c0b162c302857a3d
 
 ## Commands
 
