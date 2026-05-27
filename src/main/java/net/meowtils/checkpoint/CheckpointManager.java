@@ -101,11 +101,16 @@ public class CheckpointManager {
         }
 
         teleportCallback.setTeleportRotation(checkpointYaw, checkpointPitch, checkpointPos);
+        // Suppress the next server teleport chat message produced by the /tp command.
+        teleportCallback.suppressNextTeleportMessage();
+        teleportCallback.markTeleportCaptureWindow();
         mc.thePlayer.sendChatMessage("/tp " + checkpointPos.xCoord + " " + checkpointPos.yCoord + " " + checkpointPos.zCoord);
     }
 
     public interface TeleportCallback {
         void setTeleportRotation(float yaw, float pitch, Vec3 expectedPos);
+
+        void suppressNextTeleportMessage();
 
         default void markTeleportCaptureWindow() {}
     }

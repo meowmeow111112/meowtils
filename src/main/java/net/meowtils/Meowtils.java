@@ -34,6 +34,10 @@ public class Meowtils {
         public void setTeleportRotation(float yaw, float pitch, net.minecraft.util.Vec3 expectedPos) {
             teleportManager.setTeleportRotation(yaw, pitch, expectedPos);
         }
+        @Override
+        public void suppressNextTeleportMessage() {
+            teleportManager.suppressNextTeleportMessage();
+        }
     });
     private final TopTeleportManager topTeleportManager = new TopTeleportManager(new TopTeleportManager.TeleportCallback() {
         @Override
