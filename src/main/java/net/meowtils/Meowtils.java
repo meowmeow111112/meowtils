@@ -77,6 +77,7 @@ public class Meowtils {
 
     @SubscribeEvent
     public void onClientChatReceived(net.minecraftforge.client.event.ClientChatReceivedEvent event) {
+        teleportManager.onClientChatReceived(event);
         parkourManager.onClientChatReceived(event);
     }
 

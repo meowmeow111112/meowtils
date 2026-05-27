@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -47,6 +48,19 @@ public class TeleportManager {
 
     public void clearSuppression() {
         suppressNextTeleportServerMessage = false;
+    }
+
+    @SubscribeEvent
+    public void onClientChatReceived(ClientChatReceivedEvent event) {
+        if (!suppressNextTeleportServerMessage || event == null || event.message == null) {
+            return;
+        }
+
+        String plainMessage = event.message.getUnformattedText();
+        if (plainMessage != null && plainMessage.contains("Teleport")) {
+            event.setCanceled(true);
+            suppressNextTeleportServerMessage = false;
+        }
     }
 
     @SubscribeEvent
