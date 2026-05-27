@@ -154,7 +154,7 @@ public class TopTeleportManager {
     }
 
     private double[] findSafeStandablePosition(net.minecraft.util.BlockPos pos, net.minecraft.block.Block block, net.minecraft.block.state.IBlockState blockState, double standY, double preferredX, double preferredZ) {
-        double playerHalfWidth = mc.thePlayer.width / 2.0;
+        double playerHalfWidth = Math.max(0.0, (mc.thePlayer.width / 2.0) - EDGE_CLIP_EPSILON);
         double playerHeight = 1.8;
 
         java.util.List<net.minecraft.util.AxisAlignedBB> collisionBoxes = getCollisionBoxes(pos, block, blockState);
